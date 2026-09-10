@@ -195,14 +195,16 @@ export default function HomePage() {
 
     setProjectBreakdown(breakdown);
 
-    const openSessions = allEntries.filter((session) => session.logout_timestamp === null);
+    // const openSessions = allEntries.filter((session) => session.logout_timestamp === null);
 
     const sessionsByPerson = new Map<string, number>();
 
-    openSessions.forEach((session) => {
+    allEntries.forEach((session) => {
       const personId = String(session.person_id);
 
-      sessionsByPerson.set(personId, (sessionsByPerson.get(personId) || 0) + 1); //cauta daca exista deja, daca nu pune 0 si adauga 1
+      // sessionsByPerson.set(personId, (sessionsByPerson.get(personId) || 0) + 1); //cauta daca exista deja, daca nu pune 0 si adauga 1
+      const currentCount = sessionsByPerson.get(personId) ?? 0;
+      sessionsByPerson.set(personId, currentCount + 1);
     });
 
     const doubleClockedInCount = Array.from(sessionsByPerson.values()).filter(count => count > 1).length;

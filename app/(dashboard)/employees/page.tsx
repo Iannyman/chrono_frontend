@@ -10,6 +10,7 @@ import {
   ChevronDown,
   CalendarDays,
   X,
+  Pencil,
 } from "lucide-react";
 import { DayPicker, DateRange } from "react-day-picker";
 import "react-day-picker/dist/style.css";
@@ -283,6 +284,11 @@ const EmployeesPage = () => {
   //   ({ session }) => session.isLive && !session.logout_timestamp
   // ).length;
 
+
+  function openEdit(session: EmployeeSession) {
+                        // Implement your edit logic here, e.g., open a modal or navigate to an edit page
+                        console.log("Edit session:", session);
+                      }
 
   // Close calendar when clicking outside
   useEffect(() => {
@@ -558,12 +564,15 @@ const EmployeesPage = () => {
                 </tr>
               )}
 
+
               {!loading &&
                 filteredEmployeeRows.map(({ day, session }) => (
                   <tr
                     key={session.log_id}
                     className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors"
                   >
+
+
                     <td className="py-3 text-white font-medium">
                       {session.person_id}
                     </td>
@@ -625,6 +634,16 @@ const EmployeesPage = () => {
                       <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
                         {session.isLive ? "Live" : session.shift_name}
                       </span>
+                    </td>
+
+                      
+                    <td className="py-3 text-left">
+                      <button
+                        onClick={() => { openEdit(session) }}
+                        // className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition"
+                      >
+                        <Pencil className="h-3 w-3 text-gray-400" />
+                      </button>
                     </td>
                   </tr>
                 ))}
