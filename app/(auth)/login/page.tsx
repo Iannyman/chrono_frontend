@@ -1,6 +1,7 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import { toast } from "sonner"
+import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter()
@@ -40,8 +41,21 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-900 w-full">
+
+    <div className="relative flex min-h-screen items-center justify-center bg-gray-900 w-full">
+      <div className="absolute top-4 left-15">
+        <Image
+          className="w-30 h-35"
+          src="/new-logo.png"
+          alt="Logo"
+          width={120}
+          height={140}
+          priority
+        />
+      </div>
+
       <div className="w-full max-w-md bg-gray-800 rounded-xl shadow-md p-8">
+
         <h1 className="text-center text-2xl font-bold mb-6 text-white">
           Login Page
         </h1>
