@@ -41,8 +41,8 @@ const Sidebar = ({ user, isAdmin }: SidebarProps) => {
             className="w-30 h-35"
             src="/new-logo.png"
             alt="Logo"
-            width={60}
-            height={60}
+            width={120}
+            height={140}
             priority
           />
         </div>

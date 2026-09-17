@@ -14,7 +14,9 @@ import {
 } from "lucide-react";
 import { DayPicker, DateRange } from "react-day-picker";
 import "react-day-picker/dist/style.css";
-import { set } from "date-fns";
+import Popup from "@/components/popup";
+
+
 
 // JSON shape from API response
 interface EmployeeSession {
@@ -207,6 +209,7 @@ const EmployeesPage = () => {
   ];
 
 
+
   useEffect(() => {
     async function fetchEmployees() {
       try {
@@ -244,14 +247,14 @@ const EmployeesPage = () => {
 
         const result: EmployeeApiResponse = await apiResponse.json();
 
-        console.log("HISTORICAL RESULT:", result);
-        console.log("HISTORICAL SUCCESS:", result.success);
-        console.log("HISTORICAL DATA:", result.data);
-        console.log("FIRST HISTORICAL ITEM:", result.data[0]);
+        // console.log("HISTORICAL RESULT:", result);
+        // console.log("HISTORICAL SUCCESS:", result.success);
+        // console.log("HISTORICAL DATA:", result.data);
+        // console.log("FIRST HISTORICAL ITEM:", result.data[0]);
 
         const liveResult: EmployeeApiResponse = await liveApiResponse.json();
 
-        console.log("LIVE RESULT:", liveResult);
+        // console.log("LIVE RESULT:", liveResult);
 
         if (result.success === 1 && Array.isArray(result.data)) {
           setEmployeeRecords(result.data);
@@ -278,17 +281,49 @@ const EmployeesPage = () => {
 
   }, []);
 
+  async function editSession(updatedSession: EmployeeSession) {
+    try {
+      console.log("Sending session:", updatedSession);
 
+      const response = await fetch("/api/sessions/edit", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedSession),
+      });
+
+      console.log("Status:", response.status);
+      const responseText = await response.text();
+      console.log("API response:", responseText);
+
+
+      if (!response.ok) {
+        throw new Error("Failed to update session");
+      }
+
+      console.log("Session updated successfully");
+    } catch (error) {
+      console.error("Failed to update session:", error);
+    }
+  }
 
   // const activeSessions = employeeRows.filter(
   //   ({ session }) => session.isLive && !session.logout_timestamp
   // ).length;
 
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<EmployeeSession | null>(null);
+  const [isPopupOpen, setPopupOpen] = useState(false);
 
   function openEdit(session: EmployeeSession) {
-                        // Implement your edit logic here, e.g., open a modal or navigate to an edit page
-                        console.log("Edit session:", session);
-                      }
+    console.log("Edit session:", session);
+    setSelectedSession(session);
+    setIsEditOpen(true);
+    setPopupOpen(true);
+
+  }
+
 
   // Close calendar when clicking outside
   useEffect(() => {
@@ -549,6 +584,7 @@ const EmployeesPage = () => {
                 <th className="text-left py-3 font-medium">Working Hours</th>
                 <th className="text-left py-3 font-medium">Working Place</th>
                 <th className="text-left py-3 font-medium">Status</th>
+                <th className="text-left py-3 font-medium">Edit</th>
               </tr>
             </thead>
 
@@ -632,18 +668,21 @@ const EmployeesPage = () => {
 
                     <td className="py-3 text-left">
                       <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
-                        {session.isLive ? "Live" : session.shift_name}
+                        {session.isLive ? "Open" : session.shift_name}
                       </span>
                     </td>
 
-                      
-                    <td className="py-3 text-left">
-                      <button
-                        onClick={() => { openEdit(session) }}
+
+                    <td className="py-3 text-center">
+                      <div className="flex items-center hover:bg-gray-900/30 rounded-lg px-1 py-1">
+                        <button
+                          id="edit-button"
+                          onClick={() => { openEdit(session) }}
                         // className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition"
-                      >
-                        <Pencil className="h-3 w-3 text-gray-400" />
-                      </button>
+                        >
+                          <Pencil className="h-3 w-3 text-gray-400" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -660,9 +699,21 @@ const EmployeesPage = () => {
               )}
             </tbody>
           </table>
+
+          <Popup
+            display="bottom"
+            isOpen={isEditOpen}
+            session={selectedSession}
+            productionLines={productionLines}
+            onClose={() => setIsEditOpen(false)}
+            save={editSession}
+          />
         </div>
+
       </div>
     </div>
+
+
   );
 };
 
