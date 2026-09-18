@@ -42,27 +42,26 @@ export default function LoginPage() {
 
   return (
 
-    <div className="relative flex min-h-screen items-center justify-center bg-gray-900 w-full">
-      <div className="absolute top-4 left-15">
-        <Image
-          className="w-30 h-35"
-          src="/new-logo.png"
-          alt="Logo"
-          width={120}
-          height={140}
-          priority
-        />
-      </div>
-
-      <div className="w-full max-w-md bg-gray-800 rounded-xl shadow-md p-8">
+    <div className="flex min-h-screen items-center justify-center bg-gray-900 w-full">
+      <div className="w-full max-w-md bg-gray-800 rounded-xl shadow-md px-8 pb-8">
+        <div className="flex justify-center">
+          <Image
+            className="w-40 h-45"
+            src="/new-logo.png"
+            alt="Logo"
+            width={140}
+            height={160}
+            priority
+          />
+        </div>
 
         <h1 className="text-center text-2xl font-bold mb-6 text-white">
-          Login Page
+          Welcome
         </h1>
 
-        <h3 className="text-center mb-6 text-gray-300">
+        {/* <h3 className="text-center mb-6 text-gray-300">
           Enter your username and password
-        </h3>
+        </h3> */}
 
         <form action={handleSubmit} className="flex flex-col gap-4">
           <input
@@ -70,7 +69,7 @@ export default function LoginPage() {
             name="username"
             placeholder="Enter your username"
             required
-            className="border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+            className="border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-transparent h-full"
           />
 
           <input
@@ -78,12 +77,13 @@ export default function LoginPage() {
             name="password"
             placeholder="Enter your password"
             required
-            className="border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+            className="border rounded-md px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-transparent h-full"
           />
 
           <button
             type="submit"
-            className="bg-[#4682B4] text-white rounded-md py-2 hover:bg-blue-700 transition"
+            className="bg-blue-500/80 text-white rounded-md py-2 hover:bg-blue-700/80 transition" 
+            // [#4682B4]
           >
             Log In
           </button>
