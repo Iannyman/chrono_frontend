@@ -308,6 +308,28 @@ const EmployeesPage = () => {
     }
   }
 
+  async function deleteSession(logId: number) {
+    try {
+      const response = await fetch("/api/sessions/delete", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          log_id: logId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete session");
+      }
+
+      console.log("Session deleted successfully");
+    } catch (error) {
+      console.error("Failed to delete session:", error);
+    }
+  }
+
   // const activeSessions = employeeRows.filter(
   //   ({ session }) => session.isLive && !session.logout_timestamp
   // ).length;
@@ -707,6 +729,7 @@ const EmployeesPage = () => {
             productionLines={productionLines}
             onClose={() => setIsEditOpen(false)}
             save={editSession}
+            deleteSession={deleteSession}
           />
         </div>
 
