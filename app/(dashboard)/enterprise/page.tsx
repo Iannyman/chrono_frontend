@@ -84,6 +84,35 @@ const EnterprisePage = () => {
     sessions: EmployeeSession[];
   };
 
+  const stats = [
+    {
+      title: "Total Production Lines",
+      value: projects.length,
+      icon: FolderKanban,
+      iconColor: "text-[#4682B4]",
+    },
+    {
+      title: "Hours Logged",
+      value: totalHours.toLocaleString(),
+      icon: Clock,
+      iconColor: "text-gray-400",
+    },
+    {
+      title: "Assigned Employees",
+      value: projects.reduce((sum, p) => sum + p.totalEmployees, 0),
+      icon: Users,
+      iconColor: "text-emerald-400",
+    },
+    {
+      title: "This Week",
+      value: totalWeekHours,
+      icon: Timer,
+      iconColor: "text-yellow-400",
+    },
+  ];
+
+
+
   useEffect(() => {
     const fetchSessions = async () => {
       const response = await fetch("/api/sessions/detailed", {
@@ -104,14 +133,14 @@ const EnterprisePage = () => {
         (day: EmployeeReportDay) => day.sessions ?? []
       );
 
-      console.log("DATA.DATA:", data.data);
-      console.log("ALL SESSIONS:", allSessions);
-      console.log("FIRST SESSION:", allSessions[0]);
-      console.log("FIRST SESSION KEYS:", Object.keys(allSessions[0] ?? {}));
-      console.log(
-        "FIRST SESSION JSON:",
-        JSON.stringify(allSessions[0], null, 2)
-      );
+      // console.log("DATA.DATA:", data.data);
+      // console.log("ALL SESSIONS:", allSessions);
+      // console.log("FIRST SESSION:", allSessions[0]);
+      // console.log("FIRST SESSION KEYS:", Object.keys(allSessions[0] ?? {}));
+      // console.log(
+      //   "FIRST SESSION JSON:",
+      //   JSON.stringify(allSessions[0], null, 2)
+      // );
 
       setSessions(allSessions);
 
@@ -141,7 +170,7 @@ const EnterprisePage = () => {
     )
   )
 
-  console.log("SESSIONS:", sessions);
+  // console.log("SESSIONS:", sessions);
 
   sessions.forEach((session) => {
     console.log(
@@ -152,7 +181,7 @@ const EnterprisePage = () => {
     );
   });
 
-  console.log("Chart data:", JSON.stringify(chartData, null, 2));
+  // console.log("Chart data:", JSON.stringify(chartData));
 
 
   return (
@@ -167,49 +196,24 @@ const EnterprisePage = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mx-8 my-4">
-        <div className="bg-gray-800 rounded-xl shadow-md p-6 flex items-center gap-4">
-          <div className="p-3 bg-gray-700 rounded-lg">
-            <FolderKanban className="h-6 w-6 text-[#4682B4]" />
-          </div>
-          <div>
-            <p className="text-sm text-gray-400">Total Production Lines</p>
-            <p className="text-2xl font-bold text-white">{projects.length}</p>
-          </div>
-        </div>
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <div
+              key={stat.title}
+              className="bg-gray-800 rounded-xl shadow-md p-6 flex items-center gap-4"
+            >
 
-        <div className="bg-gray-800 rounded-xl shadow-md p-6 flex items-center gap-4">
-          <div className="p-3 bg-gray-700 rounded-lg">
-            <Clock className="h-6 w-6 text-gray-400" />
-          </div>
-          <div>
-            <p className="text-sm text-gray-400">Hours Logged</p>
-            <p className="text-2xl font-bold text-white">
-              {totalHours.toLocaleString()}h
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-gray-800 rounded-xl shadow-md p-6 flex items-center gap-4">
-          <div className="p-3 bg-gray-700 rounded-lg">
-            <Users className="h-6 w-6 text-emerald-400" />
-          </div>
-          <div>
-            <p className="text-sm text-gray-400">Assigned Employees</p>
-            <p className="text-2xl font-bold text-white">
-              {projects.reduce((sum, p) => sum + p.totalEmployees, 0)}
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-gray-800 rounded-xl shadow-md p-6 flex items-center gap-4">
-          <div className="p-3 bg-gray-700 rounded-lg">
-            <Timer className="h-6 w-6 text-yellow-400" />
-          </div>
-          <div>
-            <p className="text-sm text-gray-400">This Week</p>
-            <p className="text-2xl font-bold text-white">{totalWeekHours}h</p>
-          </div>
-        </div>
+              <div className={`p-3 bg-gray-700 rounded-lg ${stat.icon}`}>
+                <Icon className={`h-6 w-6 ${stat.iconColor}`} />
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">{stat.title}</p>
+                <p className="text-2xl font-bold text-white">{stat.value}</p>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Budget Progress + Department Summary */}
