@@ -186,7 +186,6 @@ const Popup: React.FC<PopupProps> = ({ isOpen, session, onClose, save, deleteSes
                                 };
 
                                 await save(updatedSession);
-
                                 onClose();
                             }}
                         >

@@ -1,5 +1,6 @@
 "use client";
 
+import { minutesInDay } from "date-fns/constants";
 import {
   FolderKanban,
   Clock,
@@ -9,6 +10,18 @@ import {
   AlertCircle,
   Timer,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
 
 interface Project {
   id: number;
@@ -20,6 +33,20 @@ interface Project {
   totalHours: number;
   budgetedHours: number;
   weekHours: number;
+}
+
+export type EmployeeSession = {
+  person_id: number;
+  person_last_name: string;
+  person_first_name: string;
+  line_id: number;
+  line_name: string;
+  log_id: number;
+  login_timestamp: string;
+  logout_timestamp: string | null;
+  shift_name: string;
+  session_minutes: number;
+  isLive?: boolean;
 }
 
 const projects: Project[] = [
@@ -49,6 +76,84 @@ const EnterprisePage = () => {
   const totalBudgeted = projects.reduce((sum, p) => sum + p.budgetedHours, 0);
   const totalWeekHours = projects.reduce((sum, p) => sum + p.weekHours, 0);
   const onTrackCount = projects.filter((p) => p.status === "On Track").length;
+
+  const [sessions, setSessions] = useState<EmployeeSession[]>([]);
+
+  type EmployeeReportDay = {
+    reporting_day: string;
+    sessions: EmployeeSession[];
+  };
+
+  useEffect(() => {
+    const fetchSessions = async () => {
+      const response = await fetch("/api/sessions/detailed", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({}),
+      });
+
+      const data = await response.json();
+
+      // console.log("API DATA:", data);
+      // console.log("DATA.DATA:", data.data);
+      // console.log("Is array:", Array.isArray(data));
+
+      const allSessions = data.data.flatMap(
+        (day: EmployeeReportDay) => day.sessions ?? []
+      );
+
+      console.log("DATA.DATA:", data.data);
+      console.log("ALL SESSIONS:", allSessions);
+      console.log("FIRST SESSION:", allSessions[0]);
+      console.log("FIRST SESSION KEYS:", Object.keys(allSessions[0] ?? {}));
+      console.log(
+        "FIRST SESSION JSON:",
+        JSON.stringify(allSessions[0], null, 2)
+      );
+
+      setSessions(allSessions);
+
+    };
+
+    fetchSessions();
+  }, []);
+
+  const hoursByLine = new Map<string, number>();
+
+  sessions.forEach((session) => {
+    const lineName = session.line_name;
+    if (!lineName) return;
+
+    const minutes = Number(session.session_minutes || 0);
+    const currentMinutes = hoursByLine.get(lineName) || 0;
+
+    hoursByLine.set(lineName, currentMinutes + minutes)
+  });
+
+  const chartData = Array.from(hoursByLine.entries()).map(
+    ([lineName, minutes]) => (
+      {
+        line: lineName,
+        hours: Math.round((minutes / 60) * 10) / 10
+      }
+    )
+  )
+
+  console.log("SESSIONS:", sessions);
+
+  sessions.forEach((session) => {
+    console.log(
+      "line:",
+      session.line_name,
+      "minutes:",
+      session.session_minutes
+    );
+  });
+
+  console.log("Chart data:", JSON.stringify(chartData, null, 2));
+
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 w-full">
@@ -120,57 +225,30 @@ const EnterprisePage = () => {
             </span> */}
           </div>
 
-          <div className="flex flex-col gap-5">
-            {projects.map((project) => {
-              const percentage = Math.round(
-                (project.totalHours / project.budgetedHours) * 100
-              );
-              const isOver = percentage >= 90;
-              // const { color, icon: StatusIcon } = statusConfig[project.status];
 
-              return (
-                <div key={project.id}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-white font-medium">
-                        {project.name}
-                      </span>
-                      {/* <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${color}`}>
-                        <StatusIcon className="h-3 w-3" />
-                        {project.status}
-                      </span> */}
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <span className="text-gray-400">
-                        {project.totalHours.toLocaleString()}h / {project.budgetedHours.toLocaleString()}h
-                      </span>
-                      <span
-                        className={`font-medium ${
-                          isOver ? "text-yellow-400" : "text-emerald-400"
-                        }`}
-                      >
-                        {percentage}%
-                      </span>
-                    </div>
-                  </div>
-                  <div className="w-full bg-gray-700 rounded-full h-2">
-                    <div
-                      className={`h-2 rounded-full transition-all ${
-                        isOver
-                          ? "bg-yellow-500"
-                          : "bg-[#4682B4]"
-                      }`}
-                      style={{ width: `${Math.min(percentage, 100)}%` }}
-                    />
-                  </div>
-                  <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
-                    <span>Lead: {project.lead}</span>
-                    <span>{project.totalEmployees} employees</span>
-                    <span>{project.weekHours}h this week</span>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="w-full h-[350px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={chartData}
+                layout="vertical"
+              >
+                <XAxis type="number" />
+
+                <YAxis
+                  type="category"
+                  dataKey="line"
+                  width={70}
+                />
+
+                <Tooltip />
+
+                <Bar
+                  dataKey="hours"
+                  fill="#3b82f6"
+                  radius={[0, 6, 6, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
