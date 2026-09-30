@@ -15,6 +15,7 @@ import {
 import { DayPicker, DateRange } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import Popup from "@/components/popup";
+import { toast } from "sonner";
 
 
 
@@ -47,9 +48,13 @@ interface EmployeeApiResponse {
 const API_URL = "/api/sessions/detailed";
 const LIVE_API_URL = "/api/sessions/live";
 
+interface EmployeesPageProps {
+  user: AuthUser | null;
+}
+
+const EmployeesPage = ({ user }: EmployeesPageProps) => {
 
 
-const EmployeesPage = () => {
 
   const [personalIdInput, setPersonalIdInput] = useState("");
   const [selectedLine, setSelectedLine] = useState("All Lines");
@@ -129,7 +134,6 @@ const EmployeesPage = () => {
     return [...liveRows, ...employeeRows];
   }, [employeeRecords, liveSession]);
 
-  // console.log("employeeRecords:", employeeRecords);
 
   const productionLines = useMemo(() => {
     const lines = employeeRows
@@ -228,7 +232,6 @@ const EmployeesPage = () => {
           return `${year}-${month}-${day}`;
         };
 
-        // const response = await fetch(API_URL);
         const [apiResponse, liveApiResponse] = await Promise.all([
           fetch(API_URL, {
             method: 'POST',
@@ -247,14 +250,8 @@ const EmployeesPage = () => {
 
         const result: EmployeeApiResponse = await apiResponse.json();
 
-        // console.log("HISTORICAL RESULT:", result);
-        // console.log("HISTORICAL SUCCESS:", result.success);
-        // console.log("HISTORICAL DATA:", result.data);
-        // console.log("FIRST HISTORICAL ITEM:", result.data[0]);
-
         const liveResult: EmployeeApiResponse = await liveApiResponse.json();
 
-        // console.log("LIVE RESULT:", liveResult);
 
         if (result.success === 1 && Array.isArray(result.data)) {
           setEmployeeRecords(result.data);
@@ -283,41 +280,48 @@ const EmployeesPage = () => {
 
   async function editSession(updatedSession: EmployeeSession) {
     try {
-      console.log("Sending session:", updatedSession);
+      const body = {
+        line_id: updatedSession.line_id.toString(),
+        log_id: updatedSession.log_id.toString(),
+        login_timestamp: updatedSession.login_timestamp,
+        logout_timestamp: updatedSession.logout_timestamp,
+        // username: localStorage.getItem("user")
+        username: " "
+      }
 
       const response = await fetch("/api/sessions/edit", {
-        method: "PUT",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(updatedSession),
+        body: JSON.stringify(body),
       });
 
-      console.log("Status:", response.status);
       const responseText = await response.text();
-      console.log("API response:", responseText);
-
 
       if (!response.ok) {
-        throw new Error("Failed to update session");
+        toast.error(`Failed to update session.`, { position: "top-right" });
+        // throw new Error("Failed to update session");
       }
 
-      console.log("Session updated successfully");
+
+      const apiResponse = JSON.parse(responseText)
+      if(apiResponse.success == 1){
+        toast.success(`Session edited successfully for employee: ${updatedSession.person_id}.`, { position: "top-right" });
+      } else toast.error("Failed to update session.", { position: "top-right" });
+      
+
     } catch (error) {
       console.error("Failed to update session:", error);
     }
   }
 
-  // const activeSessions = employeeRows.filter(
-  //   ({ session }) => session.isLive && !session.logout_timestamp
-  // ).length;
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState<EmployeeSession | null>(null);
   const [isPopupOpen, setPopupOpen] = useState(false);
 
   function openEdit(session: EmployeeSession) {
-    console.log("Edit session:", session);
     setSelectedSession(session);
     setIsEditOpen(true);
     setPopupOpen(true);
@@ -375,37 +379,6 @@ const EmployeesPage = () => {
           );
         })}
 
-        {/* <div className="bg-gray-800 rounded-xl shadow-md p-6 flex items-center gap-4">
-          <div className="p-3 bg-gray-700 rounded-lg">
-            <Users className="h-6 w-6 text-gray-400" />
-          </div>
-          <div>
-            <p className="text-sm text-gray-400">Employees Shown</p>
-            <p className="text-2xl font-bold text-white">{totalEmployees}</p>
-          </div>
-        </div>
-
-        <div className="bg-gray-800 rounded-xl shadow-md p-6 flex items-center gap-4">
-          <div className="p-3 bg-gray-700 rounded-lg">
-            <UserCheck className="h-6 w-6 text-emerald-400" />
-          </div>
-          <div>
-            <p className="text-sm text-gray-400">Sessions Found</p>
-            <p className="text-2xl font-bold text-white">{activeSessions}</p>
-          </div>
-        </div>
-
-        <div className="bg-gray-800 rounded-xl shadow-md p-6 flex items-center gap-4">
-          <div className="p-3 bg-gray-700 rounded-lg">
-            <Clock className="h-6 w-6 text-[#4682B4]" />
-          </div>
-          <div>
-            <p className="text-sm text-gray-400">Average Session</p>
-            <p className="text-2xl font-bold text-white">
-              {totalMinutesLogged}
-            </p>
-          </div>
-        </div> */}
       </div>
 
       {/* Filters */}
@@ -705,7 +678,12 @@ const EmployeesPage = () => {
             isOpen={isEditOpen}
             session={selectedSession}
             productionLines={productionLines}
-            onClose={() => setIsEditOpen(false)}
+            onClose={() => {
+              setIsEditOpen(false);              
+            }
+
+            }
+
             save={editSession}
           />
         </div>

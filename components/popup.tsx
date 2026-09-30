@@ -1,4 +1,5 @@
 import React from "react";
+import { toast } from "sonner";
 
 export type EmployeeSession = {
     person_id: number;
@@ -26,7 +27,13 @@ type PopupProps = {
 
 const Popup: React.FC<PopupProps> = ({ isOpen, session, onClose, save, productionLines }) => {
 
-    console.log("Popup:", isOpen, session);
+    const handleSave = () => {
+    toast.success("Session updated successfully.", {
+      position: "top-right",
+    });
+  };
+
+
     const [line, setLine] = React.useState(session?.line_name || "");
     const [date, setDate] = React.useState(session ? new Date(session.login_timestamp).toLocaleDateString("en-US") : "-");
     const [loginTime, setLoginTime] = React.useState(session ? new Date(session.login_timestamp).toLocaleTimeString("en-US", {
@@ -39,32 +46,6 @@ const Popup: React.FC<PopupProps> = ({ isOpen, session, onClose, save, productio
         minute: "2-digit",
         second: "2-digit",
     }) : "-");
-
-
-    // async function editSession(updatedSession: EmployeeSession) {
-    //     try {
-    //         const response = await fetch("API", {
-    //             method: "PUT",
-    //             headers: {
-    //                 "Content-Type": "application/json",
-    //             },
-    //             body: JSON.stringify(updatedSession),
-    //         });
-
-    //         if (!response.ok) {
-    //             throw new Error("Failed to update session");
-    //         }
-
-    //         const result = await response.json();
-
-    //         console.log("Session updated:", result);
-
-    //         save(updatedSession);
-    //         onClose();
-    //     } catch (error) {
-    //         console.error("Failed to update session: ", error)
-    //     }
-    // }
 
 
     React.useEffect(() => {
@@ -147,6 +128,9 @@ const Popup: React.FC<PopupProps> = ({ isOpen, session, onClose, save, productio
                             };
 
                             await save(updatedSession);
+
+                            // console.log("saved succesfully");
+                            handleSave;
 
                             onClose();
                         }}
