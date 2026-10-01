@@ -299,9 +299,21 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
 
       const responseText = await response.text();
 
+      const apiResponse = JSON.parse(responseText)
+
+
       if (!response.ok) {
         toast.error(`Failed to update session.`, { position: "top-right" });
         // throw new Error("Failed to update session");
+      }
+
+      if (apiResponse.success == 1) {
+        toast.success(`Session updated successfully for employee: ${updatedSession.person_id}.`, { position: "top-right" });
+        // window.location.reload();
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+
       }
 
       console.log("Session updated successfully");
@@ -332,13 +344,18 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
       }
 
       const apiResponse = JSON.parse(responseText)
-      if(apiResponse.success == 1){
+      if (apiResponse.success == 1) {
         toast.success(`Session deleted successfully for employee: ${deleteSession.person_id}.`, { position: "top-right" });
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+        
       } else toast.error("Failed to delete session.", { position: "top-right" });
 
 
     } catch (error) {
-      console.error("Failed to update session:", error);
+      console.error("Failed to delete session:", error);
     }
   }
 
@@ -705,7 +722,7 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
             session={selectedSession}
             productionLines={productionLines}
             onClose={() => {
-              setIsEditOpen(false);              
+              setIsEditOpen(false);
             }
 
             }
