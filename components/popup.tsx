@@ -111,6 +111,8 @@ const Popup: React.FC<PopupProps> = ({ isOpen, session, onClose, save, delete: d
                         onClick={
                             async () => {
                                 await deleteSession(session);
+                                onClose();
+                                // window.location.reload();
                             }
                         }
                     >
@@ -142,7 +144,9 @@ const Popup: React.FC<PopupProps> = ({ isOpen, session, onClose, save, delete: d
                                 };
 
                                 await save(updatedSession);
+                                // window.location.reload();
                                 onClose();
+                                
                             }}
                         >
                             Save
