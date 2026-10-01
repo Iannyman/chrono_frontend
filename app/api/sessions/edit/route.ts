@@ -1,24 +1,46 @@
-export async function PUT(request: Request) {
+import { NextRequest, NextResponse } from "next/server";
 
-    const body = await request.json();
+const UPSTREAM_TIMEOUT = 10_000;
 
+export async function POST(request: NextRequest) {
+  const token = request.cookies.get("token")?.value;
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-    console.log("Received session:", body);
+  let body: unknown;
+  try {
+    body = await request.json();
+    
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+  
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT);
 
-    const response = await fetch("/api/sessions/edit", {
-        method: "PUT",
+  try {
+    const response = await fetch(
+      `${process.env.API_BASE_URL}/sessions/edit`,
+      {
+        method: "POST",
         headers: {
-            "Content-Type": "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(body),
-    });
+        signal: controller.signal,
+      }
+    );
 
-    if (!response.ok) {
-        throw new Error("Backend failed to update sassion")
-    }
     const data = await response.json();
-
-    return Response.json({data, 
-        message: "Session received",
-    });
+    return NextResponse.json(data, { status: response.status });
+  } catch {
+    return NextResponse.json(
+      { error: "Sessions service unavailable" },
+      { status: 502 }
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
 }
