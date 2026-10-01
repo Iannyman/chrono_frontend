@@ -54,14 +54,14 @@ const projects: Project[] = [
   { id: 2, name: "Assembly Line B", line: "Production", lead: "Carlos Mendez", status: "On Track", totalEmployees: 12, totalHours: 3800, budgetedHours: 4500, weekHours: 96 },
   { id: 3, name: "Assembly Line C", line: "Quality Assurance", lead: "Elena Rivera", status: "At Risk", totalEmployees: 8, totalHours: 2400, budgetedHours: 2500, weekHours: 72 },
   { id: 4, name: "Assembly Line D", line: "Packaging", lead: "Ana Cruz", status: "On Track", totalEmployees: 7, totalHours: 1800, budgetedHours: 2200, weekHours: 56 },
-  { id: 5, name: "Assembly Line E", line: "Facilities", lead: "David Ong", status: "Completed", totalEmployees: 6, totalHours: 1100, budgetedHours: 1100, weekHours: 40 },
+  // { id: 5, name: "Assembly Line E", line: "Facilities", lead: "David Ong", status: "Completed", totalEmployees: 6, totalHours: 1100, budgetedHours: 1100, weekHours: 40 },
 ];
 
-const statusConfig: Record<Project["status"], { color: string; icon: typeof CheckCircle2 }> = {
-  "On Track": { color: "bg-emerald-900/40 text-emerald-400", icon: CheckCircle2 },
-  "At Risk": { color: "bg-yellow-900/40 text-yellow-400", icon: AlertCircle },
-  "Completed": { color: "bg-[#4682B4]/20 text-[#5B9BD5]", icon: CheckCircle2 },
-};
+// const statusConfig: Record<Project["status"], { color: string; icon: typeof CheckCircle2 }> = {
+//   "On Track": { color: "bg-emerald-900/40 text-emerald-400", icon: CheckCircle2 },
+//   "At Risk": { color: "bg-yellow-900/40 text-yellow-400", icon: AlertCircle },
+//   "Completed": { color: "bg-[#4682B4]/20 text-[#5B9BD5]", icon: CheckCircle2 },
+// };
 
 const departmentSummary = [
   { line: "Assembly Line A", projects: 2, employees: 27, hours: 8000 },
@@ -72,12 +72,43 @@ const departmentSummary = [
 ];
 
 const EnterprisePage = () => {
-  const totalHours = projects.reduce((sum, p) => sum + p.totalHours, 0);
-  const totalBudgeted = projects.reduce((sum, p) => sum + p.budgetedHours, 0);
+  const [sessions, setSessions] = useState<EmployeeSession[]>([]);
+
+  const hoursByLine = new Map<string, number>();
+
+  sessions.forEach((session) => {
+    const lineName = session.line_name;
+    if (!lineName) return;
+
+    const minutes = Number(session.session_minutes || 0);
+    const currentMinutes = hoursByLine.get(lineName) || 0;
+
+    hoursByLine.set(lineName, currentMinutes + minutes)
+  });
+
+  const chartData = Array.from(hoursByLine.entries()).map(
+    ([lineName, minutes]) => (
+      {
+        line: lineName,
+        hours: Math.round((minutes / 60) * 10) / 10
+      }
+    )
+  )
+
+
+  const totalHours = chartData.reduce(
+    (sum, item) => sum + item.hours,
+    0
+  );
+  const totalBudgeted = projects
+    // .filter((p) => p.line !== "All Lines")
+    .reduce((sum, p) => sum + p.budgetedHours, 0);
   const totalWeekHours = projects.reduce((sum, p) => sum + p.weekHours, 0);
   const onTrackCount = projects.filter((p) => p.status === "On Track").length;
 
-  const [sessions, setSessions] = useState<EmployeeSession[]>([]);
+  const [totalLines, setTotalLines] = useState(0);
+
+
 
   type EmployeeReportDay = {
     reporting_day: string;
@@ -92,8 +123,8 @@ const EnterprisePage = () => {
       iconColor: "text-[#4682B4]",
     },
     {
-      title: "Hours Logged",
-      value: totalHours.toLocaleString(),
+      title: "Total Hours",
+      value: `${Math.round(totalHours).toLocaleString("ro-RO")}h`,
       icon: Clock,
       iconColor: "text-gray-400",
     },
@@ -149,26 +180,7 @@ const EnterprisePage = () => {
     fetchSessions();
   }, []);
 
-  const hoursByLine = new Map<string, number>();
 
-  sessions.forEach((session) => {
-    const lineName = session.line_name;
-    if (!lineName) return;
-
-    const minutes = Number(session.session_minutes || 0);
-    const currentMinutes = hoursByLine.get(lineName) || 0;
-
-    hoursByLine.set(lineName, currentMinutes + minutes)
-  });
-
-  const chartData = Array.from(hoursByLine.entries()).map(
-    ([lineName, minutes]) => (
-      {
-        line: lineName,
-        hours: Math.round((minutes / 60) * 10) / 10
-      }
-    )
-  )
 
   // console.log("SESSIONS:", sessions);
 
@@ -230,18 +242,22 @@ const EnterprisePage = () => {
           </div>
 
 
-          <div className="w-full h-[350px]">
+          <div className=" w-full h-[350]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={chartData}
                 layout="vertical"
               >
-                <XAxis type="number" />
+                <XAxis 
+                type="number" 
+                label={{ value: "Hours", position: "bottom", offset: -2 }}
+                />
 
                 <YAxis
                   type="category"
                   dataKey="line"
-                  width={70}
+                  width={100}
+                  label={{value: "Production Line",  angle: -90, position: "insideLeft", offset: 5}}
                 />
 
                 <Tooltip />
@@ -287,7 +303,7 @@ const EnterprisePage = () => {
             ))}
           </div>
 
-          <div className="mt-6 pt-4 border-t border-gray-700 space-y-2">
+          {/* <div className="mt-6 pt-4 border-t border-gray-700 space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-gray-400">Total budgeted</span>
               <span className="text-white font-semibold">
@@ -300,7 +316,7 @@ const EnterprisePage = () => {
                 {Math.round((totalHours / totalBudgeted) * 100)}%
               </span>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

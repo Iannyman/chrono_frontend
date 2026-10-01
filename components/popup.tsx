@@ -22,10 +22,10 @@ type PopupProps = {
     productionLines: string[];
     onClose: () => void;
     save: (session: EmployeeSession) => Promise<void>;
-    deleteSession: (log_id: number) => Promise<void>;
+    delete: (session: EmployeeSession) => Promise<void>;
 };
 
-const Popup: React.FC<PopupProps> = ({ isOpen, session, onClose, save, deleteSession, productionLines }) => {
+const Popup: React.FC<PopupProps> = ({ isOpen, session, onClose, save, delete: deleteSession, productionLines }) => {
 
     console.log("Popup:", isOpen, session);
     const [line, setLine] = React.useState(session?.line_name || "");
@@ -110,7 +110,7 @@ const Popup: React.FC<PopupProps> = ({ isOpen, session, onClose, save, deleteSes
                         className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                         onClick={
                             async () => {
-                                await deleteSession(session.log_id);
+                                await deleteSession(session);
                             }
                         }
                     >

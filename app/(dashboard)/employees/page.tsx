@@ -304,15 +304,38 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
         // throw new Error("Failed to update session");
       }
 
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [selectedSession, setSelectedSession] = useState<EmployeeSession | null>(null);
-  const [isPopupOpen, setPopupOpen] = useState(false);
+      console.log("Session updated successfully");
+    } catch (error) {
+      console.error("Failed to update session:", error);
+    }
+  }
+
+  async function deleteSession(deleteSession: EmployeeSession) {
+    try {
+      const body = {
+        log_id: deleteSession.log_id.toString(),
+        username: " "
+      }
+
+      const response = await fetch("/api/sessions/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      const responseText = await response.text();
+
+      if (!response.ok) {
+        throw new Error("Failed to delete session");
+      }
 
       const apiResponse = JSON.parse(responseText)
       if(apiResponse.success == 1){
-        toast.success(`Session edited successfully for employee: ${updatedSession.person_id}.`, { position: "top-right" });
-      } else toast.error("Failed to update session.", { position: "top-right" });
-      
+        toast.success(`Session deleted successfully for employee: ${deleteSession.person_id}.`, { position: "top-right" });
+      } else toast.error("Failed to delete session.", { position: "top-right" });
+
 
     } catch (error) {
       console.error("Failed to update session:", error);
@@ -688,6 +711,7 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
             }
 
             save={editSession}
+            delete={deleteSession}
           />
         </div>
 
