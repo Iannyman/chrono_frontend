@@ -1,5 +1,6 @@
 "use client";
 
+import { minutesInDay } from "date-fns/constants";
 import {
   FolderKanban,
   Clock,
@@ -9,6 +10,18 @@ import {
   AlertCircle,
   Timer,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
 
 interface Project {
   id: number;
@@ -22,19 +35,33 @@ interface Project {
   weekHours: number;
 }
 
+export type EmployeeSession = {
+  person_id: number;
+  person_last_name: string;
+  person_first_name: string;
+  line_id: number;
+  line_name: string;
+  log_id: number;
+  login_timestamp: string;
+  logout_timestamp: string | null;
+  shift_name: string;
+  session_minutes: number;
+  isLive?: boolean;
+}
+
 const projects: Project[] = [
   { id: 1, name: "Assembly Line A", line: "Production", lead: "Pedro Garcia", status: "On Track", totalEmployees: 15, totalHours: 4200, budgetedHours: 5000, weekHours: 120 },
   { id: 2, name: "Assembly Line B", line: "Production", lead: "Carlos Mendez", status: "On Track", totalEmployees: 12, totalHours: 3800, budgetedHours: 4500, weekHours: 96 },
   { id: 3, name: "Assembly Line C", line: "Quality Assurance", lead: "Elena Rivera", status: "At Risk", totalEmployees: 8, totalHours: 2400, budgetedHours: 2500, weekHours: 72 },
   { id: 4, name: "Assembly Line D", line: "Packaging", lead: "Ana Cruz", status: "On Track", totalEmployees: 7, totalHours: 1800, budgetedHours: 2200, weekHours: 56 },
-  { id: 5, name: "Assembly Line E", line: "Facilities", lead: "David Ong", status: "Completed", totalEmployees: 6, totalHours: 1100, budgetedHours: 1100, weekHours: 40 },
+  // { id: 5, name: "Assembly Line E", line: "Facilities", lead: "David Ong", status: "Completed", totalEmployees: 6, totalHours: 1100, budgetedHours: 1100, weekHours: 40 },
 ];
 
-const statusConfig: Record<Project["status"], { color: string; icon: typeof CheckCircle2 }> = {
-  "On Track": { color: "bg-emerald-900/40 text-emerald-400", icon: CheckCircle2 },
-  "At Risk": { color: "bg-yellow-900/40 text-yellow-400", icon: AlertCircle },
-  "Completed": { color: "bg-[#4682B4]/20 text-[#5B9BD5]", icon: CheckCircle2 },
-};
+// const statusConfig: Record<Project["status"], { color: string; icon: typeof CheckCircle2 }> = {
+//   "On Track": { color: "bg-emerald-900/40 text-emerald-400", icon: CheckCircle2 },
+//   "At Risk": { color: "bg-yellow-900/40 text-yellow-400", icon: AlertCircle },
+//   "Completed": { color: "bg-[#4682B4]/20 text-[#5B9BD5]", icon: CheckCircle2 },
+// };
 
 const departmentSummary = [
   { line: "Assembly Line A", projects: 2, employees: 27, hours: 8000 },
@@ -45,10 +72,129 @@ const departmentSummary = [
 ];
 
 const EnterprisePage = () => {
-  const totalHours = projects.reduce((sum, p) => sum + p.totalHours, 0);
-  const totalBudgeted = projects.reduce((sum, p) => sum + p.budgetedHours, 0);
+  const [sessions, setSessions] = useState<EmployeeSession[]>([]);
+
+  const hoursByLine = new Map<string, number>();
+
+  sessions.forEach((session) => {
+    const lineName = session.line_name;
+    if (!lineName) return;
+
+    const minutes = Number(session.session_minutes || 0);
+    const currentMinutes = hoursByLine.get(lineName) || 0;
+
+    hoursByLine.set(lineName, currentMinutes + minutes)
+  });
+
+  const chartData = Array.from(hoursByLine.entries()).map(
+    ([lineName, minutes]) => (
+      {
+        line: lineName,
+        hours: Math.round((minutes / 60) * 10) / 10
+      }
+    )
+  )
+
+
+  const totalHours = chartData.reduce(
+    (sum, item) => sum + item.hours,
+    0
+  );
+  const totalBudgeted = projects
+    // .filter((p) => p.line !== "All Lines")
+    .reduce((sum, p) => sum + p.budgetedHours, 0);
   const totalWeekHours = projects.reduce((sum, p) => sum + p.weekHours, 0);
   const onTrackCount = projects.filter((p) => p.status === "On Track").length;
+
+  const [totalLines, setTotalLines] = useState(0);
+
+
+
+  type EmployeeReportDay = {
+    reporting_day: string;
+    sessions: EmployeeSession[];
+  };
+
+  const stats = [
+    {
+      title: "Total Production Lines",
+      value: projects.length,
+      icon: FolderKanban,
+      iconColor: "text-[#4682B4]",
+    },
+    {
+      title: "Total Hours",
+      value: `${Math.round(totalHours).toLocaleString("ro-RO")}h`,
+      icon: Clock,
+      iconColor: "text-gray-400",
+    },
+    {
+      title: "Assigned Employees",
+      value: projects.reduce((sum, p) => sum + p.totalEmployees, 0),
+      icon: Users,
+      iconColor: "text-emerald-400",
+    },
+    {
+      title: "This Week",
+      value: totalWeekHours,
+      icon: Timer,
+      iconColor: "text-yellow-400",
+    },
+  ];
+
+
+
+  useEffect(() => {
+    const fetchSessions = async () => {
+      const response = await fetch("/api/sessions/detailed", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({}),
+      });
+
+      const data = await response.json();
+
+      // console.log("API DATA:", data);
+      // console.log("DATA.DATA:", data.data);
+      // console.log("Is array:", Array.isArray(data));
+
+      const allSessions = data.data.flatMap(
+        (day: EmployeeReportDay) => day.sessions ?? []
+      );
+
+      // console.log("DATA.DATA:", data.data);
+      // console.log("ALL SESSIONS:", allSessions);
+      // console.log("FIRST SESSION:", allSessions[0]);
+      // console.log("FIRST SESSION KEYS:", Object.keys(allSessions[0] ?? {}));
+      // console.log(
+      //   "FIRST SESSION JSON:",
+      //   JSON.stringify(allSessions[0], null, 2)
+      // );
+
+      setSessions(allSessions);
+
+    };
+
+    fetchSessions();
+  }, []);
+
+
+
+  // console.log("SESSIONS:", sessions);
+
+  sessions.forEach((session) => {
+    console.log(
+      "line:",
+      session.line_name,
+      "minutes:",
+      session.session_minutes
+    );
+  });
+
+  // console.log("Chart data:", JSON.stringify(chartData));
+
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 w-full">
@@ -62,49 +208,24 @@ const EnterprisePage = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mx-8 my-4">
-        <div className="bg-gray-800 rounded-xl shadow-md p-6 flex items-center gap-4">
-          <div className="p-3 bg-gray-700 rounded-lg">
-            <FolderKanban className="h-6 w-6 text-[#4682B4]" />
-          </div>
-          <div>
-            <p className="text-sm text-gray-400">Total Production Lines</p>
-            <p className="text-2xl font-bold text-white">{projects.length}</p>
-          </div>
-        </div>
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <div
+              key={stat.title}
+              className="bg-gray-800 rounded-xl shadow-md p-6 flex items-center gap-4"
+            >
 
-        <div className="bg-gray-800 rounded-xl shadow-md p-6 flex items-center gap-4">
-          <div className="p-3 bg-gray-700 rounded-lg">
-            <Clock className="h-6 w-6 text-gray-400" />
-          </div>
-          <div>
-            <p className="text-sm text-gray-400">Hours Logged</p>
-            <p className="text-2xl font-bold text-white">
-              {totalHours.toLocaleString()}h
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-gray-800 rounded-xl shadow-md p-6 flex items-center gap-4">
-          <div className="p-3 bg-gray-700 rounded-lg">
-            <Users className="h-6 w-6 text-emerald-400" />
-          </div>
-          <div>
-            <p className="text-sm text-gray-400">Assigned Employees</p>
-            <p className="text-2xl font-bold text-white">
-              {projects.reduce((sum, p) => sum + p.totalEmployees, 0)}
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-gray-800 rounded-xl shadow-md p-6 flex items-center gap-4">
-          <div className="p-3 bg-gray-700 rounded-lg">
-            <Timer className="h-6 w-6 text-yellow-400" />
-          </div>
-          <div>
-            <p className="text-sm text-gray-400">This Week</p>
-            <p className="text-2xl font-bold text-white">{totalWeekHours}h</p>
-          </div>
-        </div>
+              <div className={`p-3 bg-gray-700 rounded-lg ${stat.icon}`}>
+                <Icon className={`h-6 w-6 ${stat.iconColor}`} />
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">{stat.title}</p>
+                <p className="text-2xl font-bold text-white">{stat.value}</p>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Budget Progress + Department Summary */}
@@ -120,57 +241,34 @@ const EnterprisePage = () => {
             </span> */}
           </div>
 
-          <div className="flex flex-col gap-5">
-            {projects.map((project) => {
-              const percentage = Math.round(
-                (project.totalHours / project.budgetedHours) * 100
-              );
-              const isOver = percentage >= 90;
-              // const { color, icon: StatusIcon } = statusConfig[project.status];
 
-              return (
-                <div key={project.id}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-white font-medium">
-                        {project.name}
-                      </span>
-                      {/* <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${color}`}>
-                        <StatusIcon className="h-3 w-3" />
-                        {project.status}
-                      </span> */}
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <span className="text-gray-400">
-                        {project.totalHours.toLocaleString()}h / {project.budgetedHours.toLocaleString()}h
-                      </span>
-                      <span
-                        className={`font-medium ${
-                          isOver ? "text-yellow-400" : "text-emerald-400"
-                        }`}
-                      >
-                        {percentage}%
-                      </span>
-                    </div>
-                  </div>
-                  <div className="w-full bg-gray-700 rounded-full h-2">
-                    <div
-                      className={`h-2 rounded-full transition-all ${
-                        isOver
-                          ? "bg-yellow-500"
-                          : "bg-[#4682B4]"
-                      }`}
-                      style={{ width: `${Math.min(percentage, 100)}%` }}
-                    />
-                  </div>
-                  <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
-                    <span>Lead: {project.lead}</span>
-                    <span>{project.totalEmployees} employees</span>
-                    <span>{project.weekHours}h this week</span>
-                  </div>
-                </div>
-              );
-            })}
+          <div className=" w-full h-[350]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={chartData}
+                layout="vertical"
+              >
+                <XAxis 
+                type="number" 
+                label={{ value: "Hours", position: "bottom", offset: -2 }}
+                />
+
+                <YAxis
+                  type="category"
+                  dataKey="line"
+                  width={100}
+                  label={{value: "Production Line",  angle: -90, position: "insideLeft", offset: 5}}
+                />
+
+                <Tooltip />
+
+                <Bar
+                  dataKey="hours"
+                  fill="#3b82f6"
+                  radius={[0, 6, 6, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
@@ -205,7 +303,7 @@ const EnterprisePage = () => {
             ))}
           </div>
 
-          <div className="mt-6 pt-4 border-t border-gray-700 space-y-2">
+          {/* <div className="mt-6 pt-4 border-t border-gray-700 space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-gray-400">Total budgeted</span>
               <span className="text-white font-semibold">
@@ -218,7 +316,7 @@ const EnterprisePage = () => {
                 {Math.round((totalHours / totalBudgeted) * 100)}%
               </span>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
