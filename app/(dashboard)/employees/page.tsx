@@ -15,6 +15,7 @@ import {
 import { DayPicker, DateRange } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import Popup from "@/components/popup";
+import { toast } from "sonner";
 
 
 
@@ -308,31 +309,38 @@ const EmployeesPage = () => {
     }
   }
 
-  async function deleteSession(logId: number) {
+  async function deleteSession(deleteSession: EmployeeSession) {
     try {
+      const body = {
+        log_id: deleteSession.log_id.toString(),
+        username: " "
+      }
+
       const response = await fetch("/api/sessions/delete", {
-        method: "DELETE",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          log_id: logId,
-        }),
+        body: JSON.stringify(body),
       });
+
+      const responseText = await response.text();
 
       if (!response.ok) {
         throw new Error("Failed to delete session");
       }
 
-      console.log("Session deleted successfully");
+      const apiResponse = JSON.parse(responseText)
+      if(apiResponse.success == 1){
+        toast.success(`Session deleted successfully for employee: ${deleteSession.person_id}.`, { position: "top-right" });
+      } else toast.error("Failed to delete session.", { position: "top-right" });
+
+
     } catch (error) {
       console.error("Failed to delete session:", error);
     }
   }
 
-  // const activeSessions = employeeRows.filter(
-  //   ({ session }) => session.isLive && !session.logout_timestamp
-  // ).length;
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState<EmployeeSession | null>(null);
@@ -729,7 +737,7 @@ const EmployeesPage = () => {
             productionLines={productionLines}
             onClose={() => setIsEditOpen(false)}
             save={editSession}
-            deleteSession={deleteSession}
+            delete={deleteSession}
           />
         </div>
 
