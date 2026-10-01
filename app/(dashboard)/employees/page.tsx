@@ -690,7 +690,7 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
 
 
                     <td className="py-3 text-center">
-                      <div className="flex items-center hover:bg-gray-900/30 rounded-lg px-1 py-1">
+                      <div className="flex items-center hover:bg-gray-900/30 w-5 rounded-lg px-1 py-1">
                         <button
                           id="edit-button"
                           onClick={() => { openEdit(session) }}
