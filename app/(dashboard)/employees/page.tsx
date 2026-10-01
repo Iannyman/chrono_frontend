@@ -304,6 +304,9 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
         // throw new Error("Failed to update session");
       }
 
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<EmployeeSession | null>(null);
+  const [isPopupOpen, setPopupOpen] = useState(false);
 
       const apiResponse = JSON.parse(responseText)
       if(apiResponse.success == 1){

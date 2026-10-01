@@ -1,5 +1,4 @@
 import React from "react";
-import { toast } from "sonner";
 
 export type EmployeeSession = {
     person_id: number;
@@ -23,17 +22,12 @@ type PopupProps = {
     productionLines: string[];
     onClose: () => void;
     save: (session: EmployeeSession) => Promise<void>;
+    deleteSession: (log_id: number) => Promise<void>;
 };
 
-const Popup: React.FC<PopupProps> = ({ isOpen, session, onClose, save, productionLines }) => {
+const Popup: React.FC<PopupProps> = ({ isOpen, session, onClose, save, deleteSession, productionLines }) => {
 
-    const handleSave = () => {
-    toast.success("Session updated successfully.", {
-      position: "top-right",
-    });
-  };
-
-
+    console.log("Popup:", isOpen, session);
     const [line, setLine] = React.useState(session?.line_name || "");
     const [date, setDate] = React.useState(session ? new Date(session.login_timestamp).toLocaleDateString("en-US") : "-");
     const [loginTime, setLoginTime] = React.useState(session ? new Date(session.login_timestamp).toLocaleTimeString("en-US", {
@@ -114,36 +108,46 @@ const Popup: React.FC<PopupProps> = ({ isOpen, session, onClose, save, productio
                 <div className="text-white mb-2  flex justify-between">
                     <button
                         className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                        onClick={async () => {
-                            const updatedSession: EmployeeSession = {
-                                ...session,
-                                line_name: line,
-                                login_timestamp: new Date(
-                                    `${date} ${loginTime}`
-                                ).toISOString(),
-                                logout_timestamp:
-                                    logoutTime && logoutTime !== "-"
-                                        ? new Date(`${date} ${logoutTime}`).toISOString()
-                                        : null,
-                            };
-
-                            await save(updatedSession);
-
-                            // console.log("saved succesfully");
-                            handleSave;
-
-                            onClose();
-                        }}
+                        onClick={
+                            async () => {
+                                await deleteSession(session.log_id);
+                            }
+                        }
                     >
-                        Save
+                        Delete
                     </button>
 
-                    <button
-                        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                        onClick={onClose}
-                    >
-                        Close
-                    </button>
+
+                    <div className="flex gap-3">
+                        <button
+                            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                            onClick={onClose}
+                        >
+                            Close
+                        </button>
+
+                        <button
+                            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                            onClick={async () => {
+                                const updatedSession: EmployeeSession = {
+                                    ...session,
+                                    line_name: line,
+                                    login_timestamp: new Date(
+                                        `${date} ${loginTime}`
+                                    ).toISOString(),
+                                    logout_timestamp:
+                                        logoutTime && logoutTime !== "-"
+                                            ? new Date(`${date} ${logoutTime}`).toISOString()
+                                            : null,
+                                };
+
+                                await save(updatedSession);
+                                onClose();
+                            }}
+                        >
+                            Save
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
