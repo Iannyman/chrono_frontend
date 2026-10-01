@@ -42,32 +42,6 @@ const Popup: React.FC<PopupProps> = ({ isOpen, session, onClose, save, deleteSes
     }) : "-");
 
 
-    // async function editSession(updatedSession: EmployeeSession) {
-    //     try {
-    //         const response = await fetch("API", {
-    //             method: "PUT",
-    //             headers: {
-    //                 "Content-Type": "application/json",
-    //             },
-    //             body: JSON.stringify(updatedSession),
-    //         });
-
-    //         if (!response.ok) {
-    //             throw new Error("Failed to update session");
-    //         }
-
-    //         const result = await response.json();
-
-    //         console.log("Session updated:", result);
-
-    //         save(updatedSession);
-    //         onClose();
-    //     } catch (error) {
-    //         console.error("Failed to update session: ", error)
-    //     }
-    // }
-
-
     React.useEffect(() => {
         if (!session) return;
         setLine(session.line_name);
@@ -90,64 +64,46 @@ const Popup: React.FC<PopupProps> = ({ isOpen, session, onClose, save, deleteSes
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
             <div className="w-96 bg-gray-800 rounded-lg shadow-lg p-6">
                 <h2 className="text-lg font-semibold text-white mb-4">Edit Session</h2>
-
-                <div className="grid grid-cols-[100px_1fr] items-center gap-3 text-gray-400">
-                    <p>
-                        <strong>Person ID: </strong>
-
-                    </p>
+                <p className="text-gray-400 mb-2">
+                    <strong>Person ID: </strong>
                     <input type="text" value={session?.person_id} readOnly />
-                </div>
-
-                <div className="grid grid-cols-[100px_1fr] items-center gap-3 text-gray-400">
-                    <p>
-                        <strong>Name: </strong>
-                        {/* <input type="text" value={`${session?.person_first_name} ${session?.person_last_name}`} readOnly /> */}
-                    </p>
+                </p>
+                <p className="text-gray-400 mb-2">
+                    <strong>Name: </strong>
                     <input type="text" value={`${session?.person_first_name} ${session?.person_last_name}`} readOnly />
-                </div>
+                </p>
+                <p className="text-white mb-2">
+                    <strong>Line: </strong>
+                    {/* <input type="dropdown" readOnly={false} onChange={(e) => setLine(e.target.value)}  /> */}
 
-                <div className="grid grid-cols-[100px_1fr] items-center gap-3">
-                    <p className="text-white mb-2">
-                        <strong>Line: </strong>
-                        {/* <input type="dropdown" readOnly={false} onChange={(e) => setLine(e.target.value)}  /> */}
-                    </p>
                     <select
                         value={line}
                         onChange={(e) => setLine(e.target.value)}
                         className="mt-1 bg-gray-700 rounded-lg shadow-lg border border-gray-600 py-1">
                         <option value="">Select a line</option>
 
-                        {productionLines
-                            .filter((lineName) => lineName !== "All Lines")
-                            .map((lineName, index) => (
-                                <option key={index} value={lineName}>
-                                    {lineName}
-                                </option>
-                            ))}
+                        {productionLines.map((lineName, index) => (
+
+                            <option key={index} value={lineName}>
+                                {lineName}
+                            </option>
+                        ))}
                     </select>
-                </div>
 
-                <div className="grid grid-cols-[100px_1fr] items-center gap-3">
-                    <p className="text-white mb-2">
-                        <strong>Date: </strong>
-                    </p>
+                </p>
+                <p className="text-white mb-2">
+                    <strong>Date: </strong>
                     <input type="text" value={date} readOnly={false} onChange={(e) => setDate(e.target.value)} />
-                </div>
 
-                <div className="grid grid-cols-[100px_1fr] items-center gap-3">
-                    <p className="text-white mb-2">
-                        <strong>Login: </strong>
-                    </p>
+                </p>
+                <p className="text-white mb-2">
+                    <strong>Login: </strong>
                     <input type="text" value={loginTime} readOnly={false} onChange={(e) => setLoginTime(e.target.value)} />
-                </div>
-
-                <div className="grid grid-cols-[100px_1fr] items-center gap-3">
-                    <p className="text-white mb-2">
-                        <strong>Logout: </strong>
-                    </p>
+                </p>
+                <p className="text-white mb-2">
+                    <strong>Logout: </strong>
                     <input type="text" value={logoutTime} readOnly={false} onChange={(e) => setLogoutTime(e.target.value)} />
-                </div>
+                </p>
 
                 <div className="text-white mb-2  flex justify-between">
                     <button
