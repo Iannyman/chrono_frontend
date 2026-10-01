@@ -9,7 +9,7 @@ import { toast } from "sonner";
 const menuItems = [
   { name: "Home", icon: House, variant: "ghost", href: "/" },
   { name: "Employees", icon: IdCard, variant: "ghost", href: "/employees" },
-  { name: "Enterprise", icon: List, variant: "ghost", href: "/enterprise" },
+  { name: "Reporting", icon: List, variant: "ghost", href: "/enterprise" },
   { name: "Personnel", icon: Users, variant: "ghost", href: "/personnel" },
   { name: "Settings", icon: Settings, variant: "ghost", href: "/settings" },
 ] as const;

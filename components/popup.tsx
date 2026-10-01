@@ -22,9 +22,10 @@ type PopupProps = {
     productionLines: string[];
     onClose: () => void;
     save: (session: EmployeeSession) => Promise<void>;
+    delete: (session: EmployeeSession) => Promise<void>;
 };
 
-const Popup: React.FC<PopupProps> = ({ isOpen, session, onClose, save, productionLines }) => {
+const Popup: React.FC<PopupProps> = ({ isOpen, session, onClose, save, delete: deleteSession, productionLines }) => {
 
     console.log("Popup:", isOpen, session);
     const [line, setLine] = React.useState(session?.line_name || "");
@@ -39,32 +40,6 @@ const Popup: React.FC<PopupProps> = ({ isOpen, session, onClose, save, productio
         minute: "2-digit",
         second: "2-digit",
     }) : "-");
-
-
-    // async function editSession(updatedSession: EmployeeSession) {
-    //     try {
-    //         const response = await fetch("API", {
-    //             method: "PUT",
-    //             headers: {
-    //                 "Content-Type": "application/json",
-    //             },
-    //             body: JSON.stringify(updatedSession),
-    //         });
-
-    //         if (!response.ok) {
-    //             throw new Error("Failed to update session");
-    //         }
-
-    //         const result = await response.json();
-
-    //         console.log("Session updated:", result);
-
-    //         save(updatedSession);
-    //         onClose();
-    //     } catch (error) {
-    //         console.error("Failed to update session: ", error)
-    //     }
-    // }
 
 
     React.useEffect(() => {
@@ -133,33 +108,50 @@ const Popup: React.FC<PopupProps> = ({ isOpen, session, onClose, save, productio
                 <div className="text-white mb-2  flex justify-between">
                     <button
                         className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                        onClick={async () => {
-                            const updatedSession: EmployeeSession = {
-                                ...session,
-                                line_name: line,
-                                login_timestamp: new Date(
-                                    `${date} ${loginTime}`
-                                ).toISOString(),
-                                logout_timestamp:
-                                    logoutTime && logoutTime !== "-"
-                                        ? new Date(`${date} ${logoutTime}`).toISOString()
-                                        : null,
-                            };
-
-                            await save(updatedSession);
-
-                            onClose();
-                        }}
+                        onClick={
+                            async () => {
+                                await deleteSession(session);
+                                onClose();
+                                // window.location.reload();
+                            }
+                        }
                     >
-                        Save
+                        Delete
                     </button>
 
-                    <button
-                        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                        onClick={onClose}
-                    >
-                        Close
-                    </button>
+
+                    <div className="flex gap-3">
+                        <button
+                            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                            onClick={onClose}
+                        >
+                            Close
+                        </button>
+
+                        <button
+                            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                            onClick={async () => {
+                                const updatedSession: EmployeeSession = {
+                                    ...session,
+                                    line_name: line,
+                                    login_timestamp: new Date(
+                                        `${date} ${loginTime}`
+                                    ).toISOString(),
+                                    logout_timestamp:
+                                        logoutTime && logoutTime !== "-"
+                                            ? new Date(`${date} ${logoutTime}`).toISOString()
+                                            : null,
+                                };
+
+                                await save(updatedSession);
+                                // window.location.reload();
+                                onClose();
+                                
+                            }}
+                        >
+                            Save
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

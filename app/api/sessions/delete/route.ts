@@ -7,21 +7,21 @@ export async function POST(request: NextRequest) {
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  
 
   let body: unknown;
   try {
     body = await request.json();
-    
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
-  
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT);
 
   try {
     const response = await fetch(
-      `${process.env.API_BASE_URL}/sessions/edit`,
+      `${process.env.API_BASE_URL}/sessions/delete`,
       {
         method: "POST",
         headers: {
