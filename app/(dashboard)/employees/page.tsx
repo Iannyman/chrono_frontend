@@ -591,6 +591,7 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-700 text-gray-400">
+                <th className="text-left py-3 font-medium">Log ID</th>
                 <th className="text-left py-3 font-medium">Personal ID</th>
                 <th className="text-left py-3 font-medium">Name</th>
                 <th className="text-left py-3 font-medium">Date</th>
@@ -623,7 +624,9 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
                     key={session.log_id}
                     className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors"
                   >
-
+                    <td className="py-3 text-white font-medium">
+                      {session.log_id}
+                    </td>
 
                     <td className="py-3 text-white font-medium">
                       {session.person_id}
