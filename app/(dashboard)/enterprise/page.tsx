@@ -20,6 +20,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  LabelList,
 } from "recharts";
 
 
@@ -91,10 +92,12 @@ const EnterprisePage = () => {
       {
         line: lineName,
         hours: Math.round((minutes / 60) * 10) / 10
+        // hours: Math.round(minutes / 60)
       }
     )
   )
 
+  console.log("CHART DATA:", chartData);
 
   const totalHours = chartData.reduce(
     (sum, item) => sum + item.hours,
@@ -229,7 +232,7 @@ const EnterprisePage = () => {
       </div>
 
       {/* Budget Progress + Department Summary */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mx-8 my-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mx-8 my-2">
         {/* Budget Progress */}
         <div className="lg:col-span-2 bg-gray-800 rounded-xl shadow-md p-6">
           <div className="flex items-center justify-between mb-4">
@@ -242,38 +245,48 @@ const EnterprisePage = () => {
           </div>
 
 
-          <div className=" w-full h-[350]">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className=" flex w-full h-130">
+            <ResponsiveContainer>
               <BarChart
                 data={chartData}
-                layout="vertical"
+                layout="horizontal"
+                margin={{
+                  top: 5,
+                  right: 30,
+                  left: 20,
+                  bottom: 20,
+                }}
+                
               >
-                <XAxis 
-                type="number" 
-                label={{ value: "Hours", position: "bottom", offset: -2 }}
+                <YAxis
+                  type="number"
+                  label={{ position: "bottom", offset: -5 }}
                 />
 
-                <YAxis
+                <XAxis
                   type="category"
                   dataKey="line"
-                  width={100}
-                  label={{value: "Production Line",  angle: -90, position: "insideLeft", offset: 5}}
+                  // width={100}
+                  label={{ angle: -90, position: "insideLeft", offset: -10 }}
                 />
 
-                <Tooltip />
+                {/* <Tooltip /> */}
 
                 <Bar
                   dataKey="hours"
                   fill="#3b82f6"
-                  radius={[0, 6, 6, 0]}
-                />
+                  radius={[6, 6, 0, 0]}
+                  label={{ position: 'top',  fill: '#ffffff', fontSize: 14, fontWeight: 'bold' }}
+                >
+                  {/* <LabelList dataKey="hours" position="top" fill="#ffffff" fontSize={14} fontWeight="bold" /> */}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Department Summary */}
-        <div className="bg-gray-800 rounded-xl shadow-md p-6">
+        {/* <div className="bg-gray-800 rounded-xl shadow-md p-6">
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 className="h-5 w-5 text-gray-400" />
             <h2 className="text-lg font-semibold text-white">
@@ -296,28 +309,14 @@ const EnterprisePage = () => {
                   </span>
                 </div>
                 <div className="flex items-center gap-4 text-xs text-gray-500">
-                  {/* <span>{dept.projects} project{dept.projects > 1 ? "s" : ""}</span> */}
                   <span>{dept.employees} employees</span>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* <div className="mt-6 pt-4 border-t border-gray-700 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Total budgeted</span>
-              <span className="text-white font-semibold">
-                {totalBudgeted.toLocaleString()}h
-              </span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Consumed</span>
-              <span className="text-[#4682B4] font-semibold">
-                {Math.round((totalHours / totalBudgeted) * 100)}%
-              </span>
-            </div>
-          </div> */}
-        </div>
+
+        </div> */}
       </div>
     </div>
   );
