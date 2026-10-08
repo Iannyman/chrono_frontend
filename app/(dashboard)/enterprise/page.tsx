@@ -176,6 +176,8 @@ const EnterprisePage = () => {
     setCalendarOpen(false);
   };
 
+
+
   const employeeRows = useMemo(() => {
     const employeeRows = employeeRecords.flatMap((day) =>
       (day.sessions ?? []).map((session) => ({
@@ -225,11 +227,43 @@ const EnterprisePage = () => {
 
     return matchesLine && matchesDate;
   });
-  console.log("Filtered Lines:", filteredLines);
+  // console.log("Filtered Lines:", filteredLines);
+
+  const hasDateFilter =
+    !!appliedDateRange?.from ||
+    !!appliedDateRange?.to;
+
+  const hasLineFilter =
+    appliedLine !== "All Lines";
+
+  const now = new Date();
+  const startWeek = new Date(now);
+  const day = startWeek.getDay();
+
+  const diff = day === 0 ? -6 : 1 - day; // Adjust for Sunday (0) to be the last day of the week
+  startWeek.setDate(startWeek.getDate() + diff);
+  startWeek.setHours(0, 0, 0, 0);
+
+  const endWeek = new Date(startWeek);
+  endWeek.setDate(startWeek.getDate() + 6);
+  endWeek.setHours(23, 59, 59, 999);
+
+  const chartRows = hasDateFilter || hasLineFilter
+    ? filteredLines
+    : employeeRows.filter(({ day }) => {
+      const rowDate = parseReportingDay(day.reporting_day);
+      return (
+        rowDate &&
+        rowDate >= startWeek &&
+        rowDate <= endWeek
+      );
+    });
 
   const totalLines = new Set(
     filteredLines.map(({ session }) => session.line_name)
   ).size;
+
+  
 
   const formatDate = (date?: Date) => {
     if (!date) return "";
@@ -248,31 +282,66 @@ const EnterprisePage = () => {
   sixMonthsAgo.setHours(0, 0, 0, 0);
 
 
-  const hoursByDay = new Map<string, number>();
-
-  filteredLines.forEach(({day, session}) => {
-    const date = day.reporting_day;
-    // const lineName = session.line_name;
-    // if (!lineName) return;
-
-    const minutes = Number(session.session_minutes || 0);
-    const currentMinutes = hoursByDay.get(date) || 0;
-
-    hoursByDay.set(date, currentMinutes + minutes)
-  });
 
 
-  const chartData = Array.from(hoursByDay.entries()).map(
-    ([lineName, minutes]) => (
-      {
+  let chartData;
+  if (hasDateFilter) {
+    const hoursByDay = new Map<string, number>();
+    filteredLines.forEach(({ day, session }) => {
+      const date = day.reporting_day;
+      if (!date) return;
+
+      const minutes = Number(session.session_minutes || 0);
+      const currentMinutes = hoursByDay.get(date) || 0;
+
+      hoursByDay.set(date, currentMinutes + minutes);
+    });
+
+    chartData = Array.from(hoursByDay.entries()).map(
+      ([date, minutes]) => ({
+        line: date,
+        hours: Math.round((minutes / 60) * 10) / 10,
+      })
+    );
+  } else {
+    const hoursByLine = new Map<string, number>();
+
+    chartRows.forEach(({ session }) => {
+      const lineName = session.line_name;
+      if (!lineName) return;
+
+      const minutes = Number(session.session_minutes || 0);
+      const currentMinutes = hoursByLine.get(lineName) || 0;
+
+      hoursByLine.set(lineName, currentMinutes + minutes);
+    });
+
+    chartData = Array.from(hoursByLine.entries()).map(
+      ([lineName, minutes]) => ({
         line: lineName,
-        hours: Math.round((minutes / 60) * 10) / 10
-        // hours: Math.round(minutes / 60)
-      }
-    )
-  )
+        hours: Math.round((minutes / 60) * 10) / 10,
+      })
+    );
 
-  console.log("CHART DATA:", chartData);
+  }
+
+  console.log("Start week:", startWeek);
+console.log("End week:", endWeek);
+// console.log("Employee rows:", employeeRows.length);
+// console.log("Chart rows:", chartRows.length);
+// console.log("Chart data:", chartData);
+
+  // const chartData = Array.from(hoursByLine.entries()).map(
+  //   ([lineName, minutes]) => (
+  //     {
+  //       line: lineName,
+  //       hours: Math.round((minutes / 60) * 10) / 10
+  //       // hours: Math.round(minutes / 60)
+  //     }
+  //   )
+  // )
+
+  // console.log("CHART DATA:", chartData);
 
   const totalHours = chartData.reduce(
     (sum, item) => sum + item.hours,
@@ -377,14 +446,14 @@ const EnterprisePage = () => {
 
   // console.log("SESSIONS:", sessions);
 
-  sessions.forEach((session) => {
-    console.log(
-      "line:",
-      session.line_name,
-      "minutes:",
-      session.session_minutes
-    );
-  });
+  // sessions.forEach((session) => {
+  //   console.log(
+  //     "line:",
+  //     session.line_name,
+  //     "minutes:",
+  //     session.session_minutes
+  //   );
+  // });
 
   // console.log("Chart data:", JSON.stringify(chartData));
 
@@ -558,9 +627,9 @@ const EnterprisePage = () => {
       {/* Budget Progress + Department Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mx-8 my-2">
         {/* Budget Progress */}
-        <div className="lg:col-span-2 bg-gray-800 rounded-xl shadow-md p-6">
+        <div className="lg:col-span-2 bg-gray-800 rounded-xl shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">
+            <h2 className="text-lg font-semibold text-white p-6">
               Production Lines Progress
             </h2>
             {/* <span className="text-xs text-gray-500">
@@ -568,10 +637,8 @@ const EnterprisePage = () => {
             </span> */}
           </div>
 
-
-
-          <div className=" flex w-full h-100">
-            <ResponsiveContainer>
+          <div className=" flex w-full h-100 ">
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={chartData}
                 layout="horizontal"
@@ -595,7 +662,7 @@ const EnterprisePage = () => {
                   angle={-45} //înclină etichetele la 45 de grade
                   textAnchor="end" //aliniere la capătul etichetei
                   height={70}
-                  // tick={<CustomXAxisTick />}
+                // tick={<CustomXAxisTick />}
                 // width={100}
                 // label={{ angle: -90, position: "insideLeft", offset: -10 }}
                 />
