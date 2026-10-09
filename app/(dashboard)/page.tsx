@@ -97,6 +97,13 @@ export default function HomePage() {
       body: JSON.stringify({}), // toate liniile
     });
 
+    if (apiResponse.status === 401) {
+      // Session cookie is gone/dead — full navigation so proxy.ts reroutes to
+      // /login instead of polling a ghost session.
+      window.location.replace("/login");
+      return;
+    }
+
     if (!apiResponse.ok) {
       throw new Error("Failed to fetch employee entries");
     }

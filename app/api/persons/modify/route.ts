@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { AUTH_COOKIE } from "@/lib/auth-cookie";
+import { proxyUpstreamJson } from "@/lib/upstream";
 
 const UPSTREAM_TIMEOUT = 10_000;
 
 export async function PUT(request: NextRequest) {
-  const token = request.cookies.get("token")?.value;
+  const token = request.cookies.get(AUTH_COOKIE)?.value;
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -33,7 +35,7 @@ export async function PUT(request: NextRequest) {
     );
 
     const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
+    return proxyUpstreamJson(response, data);
   } catch {
     return NextResponse.json(
       { error: "Persons service unavailable" },

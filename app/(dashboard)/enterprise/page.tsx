@@ -154,6 +154,13 @@ const EnterprisePage = () => {
         body: JSON.stringify({}),
       });
 
+      if (response.status === 401) {
+        // Session cookie is gone/dead — full navigation so proxy.ts reroutes
+        // to /login instead of rendering an empty page.
+        window.location.replace("/login");
+        return;
+      }
+
       const data = await response.json();
 
       // console.log("API DATA:", data);
