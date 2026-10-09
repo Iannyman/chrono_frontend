@@ -239,6 +239,13 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
           }),
         ]);
 
+        if (apiResponse.status === 401 || liveApiResponse.status === 401) {
+          // Session cookie is gone/dead — full navigation so proxy.ts reroutes
+          // to /login instead of polling a ghost session.
+          window.location.replace("/login");
+          return;
+        }
+
         const result: EmployeeApiResponse = await apiResponse.json();
 
         const liveResult: EmployeeApiResponse = await liveApiResponse.json();

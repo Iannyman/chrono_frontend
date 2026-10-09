@@ -1,12 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "node:crypto";
+import { AUTH_COOKIE } from "@/lib/auth-cookie";
+import { proxyUpstreamJson } from "@/lib/upstream";
 
+function fingerprint(value: string): string {
+  return createHash("sha256")
+    .update(value)
+    .digest("hex")
+    .slice(0, 12);
+}
 const UPSTREAM_TIMEOUT = 10_000;
 
 export async function POST(request: NextRequest) {
-  const token = request.cookies.get("token")?.value;
+  const token = request.cookies.get(AUTH_COOKIE)?.value;
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  process.stdout.write(
+    `[JWT DEBUG] Next.js live cookie: ${fingerprint(token)}\n`
+  );
 
   let body: unknown;
   try {
@@ -33,7 +46,7 @@ export async function POST(request: NextRequest) {
     );
 
     const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
+    return proxyUpstreamJson(response, data);
   } catch {
     return NextResponse.json(
       { error: "Sessions service unavailable" },
