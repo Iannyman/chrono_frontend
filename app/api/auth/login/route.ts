@@ -1,13 +1,6 @@
 import { NextResponse } from "next/server";
-import { createHash } from "node:crypto";
 import { AUTH_COOKIE, USER_COOKIE } from "@/lib/auth-cookie";
 
-function fingerprint(value: string): string {
-  return createHash("sha256")
-    .update(value)
-    .digest("hex")
-    .slice(0, 12);
-}
 const UPSTREAM_TIMEOUT = 10_000;
 
 export async function POST(request: Request) {
@@ -50,10 +43,6 @@ export async function POST(request: Request) {
 
   const data: AuthResponse = await response.json();
 
-  process.stdout.write(
-    `[JWT DEBUG] Next.js login token before being set: ${fingerprint(data.token)}\n`
-  );
-
   const maxAge = (() => {
     const match = String(data.expiresIn).match(/^(\d+)([smhd])$/);
     if (match) {
@@ -79,10 +68,6 @@ export async function POST(request: Request) {
     httpOnly: true,
     secure,
   });
-
-  process.stdout.write(
-   `[JWT DEBUG] Next.js login token after being set: ${fingerprint(data.token)}\n`
-  );
 
   res.cookies.set(USER_COOKIE, JSON.stringify(data.user), {
     path: "/",

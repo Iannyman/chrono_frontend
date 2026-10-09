@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createHash } from "node:crypto";
 import { AUTH_COOKIE } from "@/lib/auth-cookie";
 import { proxyUpstreamJson } from "@/lib/upstream";
 
-function fingerprint(value: string): string {
-  return createHash("sha256")
-    .update(value)
-    .digest("hex")
-    .slice(0, 12);
-}
 const UPSTREAM_TIMEOUT = 10_000;
 
 export async function POST(request: NextRequest) {
@@ -16,9 +9,6 @@ export async function POST(request: NextRequest) {
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  process.stdout.write(
-    `[JWT DEBUG] Next.js detailed cookie: ${fingerprint(token)}\n`
-  );
 
   let body: unknown;
   try {
