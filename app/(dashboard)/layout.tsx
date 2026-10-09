@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import Sidebar from "@/components/sidebar";
+import { USER_COOKIE } from "@/lib/auth-cookie";
 
 export default async function DashboardLayout({
   children,
@@ -7,7 +8,7 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const cookieStore = await cookies();
-  const raw = cookieStore.get("user")?.value;
+  const raw = cookieStore.get(USER_COOKIE)?.value;
   let user: AuthUser | null = null;
   if (raw) {
     try {
