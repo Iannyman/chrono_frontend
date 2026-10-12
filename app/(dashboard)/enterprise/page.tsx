@@ -88,7 +88,7 @@ const productionLines = [
   { line: "Assembly Line E", minutes: 2900 },
 ];
 
-const chartData = [
+const hardData = [
   { line: "304 DWT", hours: 32.5 },
   { line: "308", hours: 48 },
   { line: "309", hours: 21.7 },
@@ -263,7 +263,7 @@ const EnterprisePage = () => {
     filteredLines.map(({ session }) => session.line_name)
   ).size;
 
-  
+
 
   const formatDate = (date?: Date) => {
     if (!date) return "";
@@ -326,10 +326,11 @@ const EnterprisePage = () => {
   }
 
   console.log("Start week:", startWeek);
-console.log("End week:", endWeek);
-// console.log("Employee rows:", employeeRows.length);
-// console.log("Chart rows:", chartRows.length);
-// console.log("Chart data:", chartData);
+  console.log("End week:", endWeek);
+
+  // console.log("Employee rows:", employeeRows.length);
+  // console.log("Chart rows:", chartRows.length);
+  console.log("Chart data:", chartData);
 
   // const chartData = Array.from(hoursByLine.entries()).map(
   //   ([lineName, minutes]) => (
@@ -384,12 +385,12 @@ console.log("End week:", endWeek);
       icon: Users,
       iconColor: "text-emerald-400",
     },
-    {
-      title: "This Week",
-      value: totalWeekHours,
-      icon: Timer,
-      iconColor: "text-yellow-400",
-    },
+    // {
+    //   title: "This Week",
+    //   value: totalWeekHours,
+    //   icon: Timer,
+    //   iconColor: "text-yellow-400",
+    // },
   ];
 
 
@@ -467,12 +468,12 @@ console.log("End week:", endWeek);
       <div className="mx-8 mt-8 mb-2">
         <h1 className="text-2xl font-bold text-white">Factory Report</h1>
         <p className="text-gray-400 text-sm mt-1">
-          Projects overview, resource allocation, and department performance.
+          Projects overview, resource allocation and department performance.
         </p>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mx-8 my-2">
+      <div className="grid  sm:grid-cols-1 lg:grid-cols-6 gap-4 mx-8 my-2">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -491,142 +492,142 @@ console.log("End week:", endWeek);
             </div>
           );
         })}
+
+
+
+        <form
+          onSubmit={handleSearch}
+          className="flex gap-4 grid lg:grid-cols-3 col-span-3"
+        >
+
+          {/* Production Line Filter */}
+          <div className="bg-gray-800 rounded-xl shadow-md p-6">
+            <h2 className="text-lg font-semibold text-white mb-3">
+              Production Line
+            </h2>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setLineDropdownOpen(!lineDropdownOpen)}
+                className="flex items-center justify-between bg-gray-700 rounded-lg px-3 py-2 w-full text-sm text-white hover:bg-gray-600 transition"
+              >
+                <span className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-gray-400" />
+                  {selectedLine}
+                </span>
+                <ChevronDown
+                  className={`h-4 w-4 text-gray-400 transition-transform ${lineDropdownOpen ? "rotate-180" : ""
+                    }`}
+                />
+              </button>
+
+              {lineDropdownOpen && (
+                <div className="absolute z-10 mt-1 w-full bg-gray-700 rounded-lg shadow-lg border border-gray-600 py-1">
+                  {productionLines.map((line) => (
+                    <button
+                      key={line}
+                      onClick={() => {
+                        setSelectedLine(line);
+                        setLineDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-600 transition ${selectedLine === line
+                        ? "text-[#4682B4] font-medium"
+                        : "text-gray-300"
+                        }`}
+                    >
+                      {line}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Date Range Filter */}
+          <div className=" bg-gray-800 rounded-xl shadow-md p-6">
+            <h2 className="text-lg font-semibold text-white mb-3">Date Range</h2>
+
+            <div className="relative" ref={calendarRef}>
+              <button
+                type="button"
+                onClick={() => setCalendarOpen(!calendarOpen)}
+                className="flex items-center justify-between bg-gray-700 rounded-lg px-3 py-2 w-full text-sm text-white hover:bg-gray-600 transition"
+              >
+                <span className="flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4 text-gray-400" />
+
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {formatDate(dateRange.from)} - {formatDate(dateRange.to)}
+                      </>
+                    ) : (
+                      <>From {formatDate(dateRange.from)}</>
+                    )
+                  ) : (
+                    "Select date range"
+                  )}
+                </span>
+
+                <ChevronDown
+                  className={`h-4 w-4 text-gray-400 transition-transform ${calendarOpen ? "rotate-180" : ""
+                    }`}
+                />
+              </button>
+
+              {calendarOpen && (
+                <div className="absolute z-20 mt-2 bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4 text-white">
+                  <DayPicker
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={setDateRange}
+                    numberOfMonths={1}
+                    disabled={{
+                      before: sixMonthsAgo,
+                      after: today,
+                    }}
+                    excludeDisabled
+                    className="text-white"
+                  />
+
+                  <div className="flex justify-between items-center mt-3">
+                    <button
+                      onClick={() => setDateRange(undefined)}
+                      className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition"
+                    >
+                      <X className="h-3 w-3" />
+                      Clear
+                    </button>
+
+                    <button
+                      onClick={() => setCalendarOpen(false)}
+                      className="bg-[#4682B4] hover:bg-[#3a6f9a] text-white px-3 py-1.5 rounded-lg text-xs font-medium transition"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Search Button */}
+          <div className="  rounded-xl shadow-md flex items-end">
+            <button
+              type="submit"
+              className="w-30 h-15 bg-[#3b82f6] hover:bg-[#3a6f9a] items-end text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+            >
+              Search
+            </button>
+          </div>
+
+        </form>
+
       </div>
 
-
-      <form
-        onSubmit={handleSearch}
-        className="flex flex-col grid grid-cols-1 lg:grid-cols-4  gap-4 mx-8 my-2"
-      >
-
-        {/* Production Line Filter */}
-        <div className=" bg-gray-800 rounded-xl shadow-md p-6">
-          <h2 className="text-lg font-semibold text-white mb-3">
-            Production Line
-          </h2>
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setLineDropdownOpen(!lineDropdownOpen)}
-              className="flex items-center justify-between bg-gray-700 rounded-lg px-3 py-2 w-full text-sm text-white hover:bg-gray-600 transition"
-            >
-              <span className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-gray-400" />
-                {selectedLine}
-              </span>
-              <ChevronDown
-                className={`h-4 w-4 text-gray-400 transition-transform ${lineDropdownOpen ? "rotate-180" : ""
-                  }`}
-              />
-            </button>
-
-            {lineDropdownOpen && (
-              <div className="absolute z-10 mt-1 w-full bg-gray-700 rounded-lg shadow-lg border border-gray-600 py-1">
-                {productionLines.map((line) => (
-                  <button
-                    key={line}
-                    onClick={() => {
-                      setSelectedLine(line);
-                      setLineDropdownOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-600 transition ${selectedLine === line
-                      ? "text-[#4682B4] font-medium"
-                      : "text-gray-300"
-                      }`}
-                  >
-                    {line}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Date Range Filter */}
-        <div className=" bg-gray-800 rounded-xl shadow-md p-6">
-          <h2 className="text-lg font-semibold text-white mb-3">Date Range</h2>
-
-          <div className="relative" ref={calendarRef}>
-            <button
-              type="button"
-              onClick={() => setCalendarOpen(!calendarOpen)}
-              className="flex items-center justify-between bg-gray-700 rounded-lg px-3 py-2 w-full text-sm text-white hover:bg-gray-600 transition"
-            >
-              <span className="flex items-center gap-2">
-                <CalendarDays className="h-4 w-4 text-gray-400" />
-
-                {dateRange?.from ? (
-                  dateRange.to ? (
-                    <>
-                      {formatDate(dateRange.from)} - {formatDate(dateRange.to)}
-                    </>
-                  ) : (
-                    <>From {formatDate(dateRange.from)}</>
-                  )
-                ) : (
-                  "Select date range"
-                )}
-              </span>
-
-              <ChevronDown
-                className={`h-4 w-4 text-gray-400 transition-transform ${calendarOpen ? "rotate-180" : ""
-                  }`}
-              />
-            </button>
-
-            {calendarOpen && (
-              <div className="absolute z-20 mt-2 bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4 text-white">
-                <DayPicker
-                  mode="range"
-                  selected={dateRange}
-                  onSelect={setDateRange}
-                  numberOfMonths={1}
-                  disabled={{
-                    before: sixMonthsAgo,
-                    after: today,
-                  }}
-                  excludeDisabled
-                  className="text-white"
-                />
-
-                <div className="flex justify-between items-center mt-3">
-                  <button
-                    onClick={() => setDateRange(undefined)}
-                    className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition"
-                  >
-                    <X className="h-3 w-3" />
-                    Clear
-                  </button>
-
-                  <button
-                    onClick={() => setCalendarOpen(false)}
-                    className="bg-[#4682B4] hover:bg-[#3a6f9a] text-white px-3 py-1.5 rounded-lg text-xs font-medium transition"
-                  >
-                    Apply
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Search Button */}
-        <div className="sm:w-40 bg-gray-800 rounded-xl shadow-md p-6 flex items-end">
-          <button
-            type="submit"
-            className="w-full bg-[#3b82f6] hover:bg-[#3a6f9a] text-white px-4 py-2 rounded-lg text-sm font-medium transition"
-          >
-            Search
-          </button>
-        </div>
-
-      </form>
-
-
-
-      {/* Budget Progress + Department Summary */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mx-8 my-2">
-        {/* Budget Progress */}
+      {/* Production Lines Progress */}
+      <div className="flex-1 min-h-0 flex flex-col grid grid-cols-1 lg:grid-cols-2 gap-6 mx-8 my-2">
+        {/* Production Lines Progress */}
         <div className="lg:col-span-2 bg-gray-800 rounded-xl shadow-md">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-white p-6">
@@ -637,50 +638,59 @@ console.log("End week:", endWeek);
             </span> */}
           </div>
 
-          <div className=" flex w-full h-100 ">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={chartData}
-                layout="horizontal"
-              // margin={{
-              //   top: 5,
-              //   right: 10,
-              //   left: 10,
-              //   bottom: 0,
-              // }}
+          {chartData.length === 0 ? (
+            <div className="flex items-center justify-center h-64">
+              <p className="text-gray-400">No data available for the current week.</p>
+            </div>
+          ) : (
+            <div className="flex w-full h-100 ">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  barSize={40}
+                  data={chartData}
+                  layout="horizontal"
+                // margin={{
+                //   top: 5,
+                //   right: 10,
+                //   left: 10,
+                //   bottom: 0,
+                // }}
 
-              >
-                <YAxis
-                  type="number"
-                // label={{ position: "bottom", offset: -5 }}
-                />
-
-                <XAxis
-                  type="category"
-                  dataKey="line"
-                  interval={0} //nu ascunde nicio etichetă
-                  angle={-45} //înclină etichetele la 45 de grade
-                  textAnchor="end" //aliniere la capătul etichetei
-                  height={70}
-                // tick={<CustomXAxisTick />}
-                // width={100}
-                // label={{ angle: -90, position: "insideLeft", offset: -10 }}
-                />
-
-                {/* <Tooltip /> */}
-
-                <Bar
-                  dataKey="hours"
-                  fill="#3b82f6"
-                  radius={[6, 6, 0, 0]}
-                  label={{ position: 'top', fill: '#ffffff', fontSize: 14, fontWeight: 'bold' }}
                 >
-                  {/* <LabelList dataKey="hours" position="top" fill="#ffffff" fontSize={14} fontWeight="bold" /> */}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+                  <YAxis
+                    type="number"
+                  // label={{ position: "bottom", offset: -5 }}
+                  />
+
+                  <XAxis
+                    type="category"
+                    dataKey="line"
+                    interval={0} //nu ascunde nicio etichetă
+                    angle={-45} //înclină etichetele la 45 de grade
+                    textAnchor="end" //aliniere la capătul etichetei
+                    height={70}
+                  // tick={<CustomXAxisTick />}
+                  // width={100}
+                  // label={{ angle: -90, position: "insideLeft", offset: -10 }}
+                  />
+
+                  {/* <Tooltip /> */}
+
+                  <Bar
+                    dataKey="hours"
+                    fill="#3b82f6"
+                    // width={30}
+                    radius={[6, 6, 0, 0]}
+                    label={{ position: 'top', fill: '#ffffff', fontSize: 14, fontWeight: 'bold' }}
+                  >
+                    {/* <LabelList dataKey="hours" position="top" fill="#ffffff" fontSize={14} fontWeight: "bold" /> */}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
+
 
 
       </div>
