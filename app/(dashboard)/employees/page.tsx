@@ -31,6 +31,7 @@ interface EmployeeSession {
   logout_timestamp: string | null;
   shift_name: string;
   session_minutes: number;
+  session_status: number;
   isLive?: boolean; // Optional property to indicate if the session is live
 }
 
@@ -598,6 +599,7 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
                 {/* <th className="text-left py-3 font-medium">Hrs/Week</th> */}
                 <th className="text-left py-3 font-medium">Working Hours</th>
                 <th className="text-left py-3 font-medium">Working Place</th>
+                <th className="text-left py-3 font-medium">Warning</th>
                 <th className="text-left py-3 font-medium">Status</th>
                 <th className="text-left py-3 font-medium">Edit</th>
               </tr>
@@ -689,6 +691,9 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
                       </span>
                     </td>
 
+                    <td className="py-3 text-gray-400">
+                      {session.session_status}
+                    </td>
 
                     <td className="py-3 text-center">
                       <div className="flex items-center hover:bg-gray-900/30 w-5 rounded-lg px-1 py-1">
