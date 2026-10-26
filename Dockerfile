@@ -1,4 +1,4 @@
-FROM node:20 AS base
+FROM node:24 AS base
 
 RUN apt update && apt install -y less man-db
 RUN apt upgrade -y
