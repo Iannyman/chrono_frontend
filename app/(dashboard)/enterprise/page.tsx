@@ -123,32 +123,32 @@ const hardData = [
   { line: "304 DWT", hours: 32.5 },
 ];
 
-const CustomXAxisTick = ({ x, y, payload }: any) => {
-  const words = payload.value.split(" ");
+// const CustomXAxisTick = ({ x, y, payload }: any) => {
+//   const words = payload.value.split(" ");
 
-  return (
-    <g transform={`translate(${x},${y})`}>
-      <text
-        x={0}
-        y={0}
-        dy={16}
-        textAnchor="middle"
-        fill="#9ca3af"
-        fontSize={12}
-      >
-        {words.map((word: string, index: number) => (
-          <tspan
-            key={index}
-            x="0"
-            dy={index === 0 ? 0 : 14}
-          >
-            {word}
-          </tspan>
-        ))}
-      </text>
-    </g>
-  );
-};
+//   return (
+//     <g transform={`translate(${x},${y})`}>
+//       <text
+//         x={0}
+//         y={0}
+//         dy={16}
+//         textAnchor="middle"
+//         fill="#9ca3af"
+//         fontSize={12}
+//       >
+//         {words.map((word: string, index: number) => (
+//           <tspan
+//             key={index}
+//             x="0"
+//             dy={index === 0 ? 0 : 14}
+//           >
+//             {word}
+//           </tspan>
+//         ))}
+//       </text>
+//     </g>
+//   );
+// };
 
 const EnterprisePage = () => {
   const [sessions, setSessions] = useState<EmployeeSession[]>([]);
@@ -466,16 +466,13 @@ const EnterprisePage = () => {
   // console.log("Chart data:", JSON.stringify(chartData));
 
 
-
-
-
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 w-full">
       {/* Header */}
       <div className="mx-8 mt-8 mb-2">
         <h1 className="text-2xl font-bold text-white">Factory Report</h1>
         <p className="text-gray-400 text-sm mt-1">
-          Projects overview, resource allocation and department performance.
+          Projects overview, resource allocation and lines performance.
         </p>
       </div>
 
@@ -504,138 +501,147 @@ const EnterprisePage = () => {
 
         <form
           onSubmit={handleSearch}
-          className="flex gap-4 grid lg:grid-cols-3 col-span-3"
+          className="col-span-3 bg-gray-800 rounded-xl shadow-md p-6"
         >
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_auto] gap-4 items-end">
 
-          {/* Production Line Filter */}
-          <div className="bg-gray-800 rounded-xl shadow-md p-6">
-            <h2 className="text-lg font-semibold text-white mb-3">
-              Production Line
-            </h2>
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setLineDropdownOpen(!lineDropdownOpen)}
-                className="flex items-center justify-between bg-gray-700 rounded-lg px-3 py-2 w-full text-sm text-white hover:bg-gray-600 transition"
-              >
-                <span className="flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-gray-400" />
-                  {selectedLine}
-                </span>
-                <ChevronDown
-                  className={`h-4 w-4 text-gray-400 transition-transform ${lineDropdownOpen ? "rotate-180" : ""
-                    }`}
-                />
-              </button>
+            {/* Production Line */}
+            <div>
+              <h2 className="text-lg font-semibold text-white mb-3">
+                Production Line
+              </h2>
 
-              {lineDropdownOpen && (
-                <div className="absolute z-10 mt-1 w-full bg-gray-700 rounded-lg shadow-lg border border-gray-600 py-1">
-                  {productionLines.map((line) => (
-                    <button
-                      key={line}
-                      onClick={() => {
-                        setSelectedLine(line);
-                        setLineDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-600 transition ${selectedLine === line
-                        ? "text-[#4682B4] font-medium"
-                        : "text-gray-300"
-                        }`}
-                    >
-                      {line}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setLineDropdownOpen(!lineDropdownOpen)}
+                  className="flex items-center justify-between bg-gray-700 rounded-lg px-3 py-2 w-full text-sm text-white hover:bg-gray-600 transition"
+                >
+                  <span className="flex items-center gap-2">
+                    <Filter className="h-4 w-4 text-gray-400" />
+                    {selectedLine}
+                  </span>
 
-          {/* Date Range Filter */}
-          <div className=" bg-gray-800 rounded-xl shadow-md p-6">
-            <h2 className="text-lg font-semibold text-white mb-3">Date Range</h2>
-
-            <div className="relative" ref={calendarRef}>
-              <button
-                type="button"
-                onClick={() => setCalendarOpen(!calendarOpen)}
-                className="flex items-center justify-between bg-gray-700 rounded-lg px-3 py-2 w-full text-sm text-white hover:bg-gray-600 transition"
-              >
-                <span className="flex items-center gap-2">
-                  <CalendarDays className="h-4 w-4 text-gray-400" />
-
-                  {dateRange?.from ? (
-                    dateRange.to ? (
-                      <>
-                        {formatDate(dateRange.from)} - {formatDate(dateRange.to)}
-                      </>
-                    ) : (
-                      <>From {formatDate(dateRange.from)}</>
-                    )
-                  ) : (
-                    "Select date range"
-                  )}
-                </span>
-
-                <ChevronDown
-                  className={`h-4 w-4 text-gray-400 transition-transform ${calendarOpen ? "rotate-180" : ""
-                    }`}
-                />
-              </button>
-
-              {calendarOpen && (
-                <div className="absolute z-20 mt-2 bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4 text-white">
-                  <DayPicker
-                    mode="range"
-                    selected={dateRange}
-                    onSelect={setDateRange}
-                    numberOfMonths={1}
-                    disabled={{
-                      before: sixMonthsAgo,
-                      after: today,
-                    }}
-                    excludeDisabled
-                    className="text-white"
+                  <ChevronDown
+                    className={`h-4 w-4 text-gray-400 transition-transform ${lineDropdownOpen ? "rotate-180" : ""
+                      }`}
                   />
+                </button>
 
-                  <div className="flex justify-between items-center mt-3">
-                    <button
-                      onClick={() => setDateRange(undefined)}
-                      className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition"
-                    >
-                      <X className="h-3 w-3" />
-                      Clear
-                    </button>
-
-                    <button
-                      onClick={() => setCalendarOpen(false)}
-                      className="bg-[#4682B4] hover:bg-[#3a6f9a] text-white px-3 py-1.5 rounded-lg text-xs font-medium transition"
-                    >
-                      Apply
-                    </button>
+                {lineDropdownOpen && (
+                  <div className="absolute z-10 mt-1 w-full bg-gray-700 rounded-lg shadow-lg border border-gray-600 py-1">
+                    {["All Lines", ...productionLines.filter(line => line !== "All Lines")].map((line) => (
+                      <button
+                        type="button"
+                        key={line}
+                        onClick={() => {
+                          setSelectedLine(line);
+                          setLineDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-600 transition ${selectedLine === line
+                            ? "text-[#4682B4] font-medium"
+                            : "text-gray-300"
+                          }`}
+                      >
+                        {line}
+                      </button>
+                    ))}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Search Button */}
-          <div className="  rounded-xl shadow-md flex items-end">
-            <button
-              type="submit"
-              className="w-30 h-15 bg-[#3b82f6] hover:bg-[#3a6f9a] items-end text-white px-4 py-2 rounded-lg text-sm font-medium transition"
-            >
-              Search
-            </button>
-          </div>
+            {/* Date Range */}
+            <div>
+              <h2 className="text-lg font-semibold text-white mb-3">
+                Date Range
+              </h2>
 
+              <div className="relative" ref={calendarRef}>
+                <button
+                  type="button"
+                  onClick={() => setCalendarOpen(!calendarOpen)}
+                  className="flex items-center justify-between bg-gray-700 rounded-lg px-3 py-2 w-full text-sm text-white hover:bg-gray-600 transition"
+                >
+                  <span className="flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4 text-gray-400" />
+
+                    {dateRange?.from ? (
+                      dateRange.to ? (
+                        <>
+                          {formatDate(dateRange.from)} - {formatDate(dateRange.to)}
+                        </>
+                      ) : (
+                        <>From {formatDate(dateRange.from)}</>
+                      )
+                    ) : (
+                      "Select date range"
+                    )}
+                  </span>
+
+                  <ChevronDown
+                    className={`h-4 w-4 text-gray-400 transition-transform ${calendarOpen ? "rotate-180" : ""
+                      }`}
+                  />
+                </button>
+
+                {calendarOpen && (
+                  <div className="absolute z-20 mt-2 bg-gray-800 border border-gray-700 rounded-xl shadow-lg p-4 text-white">
+                    <DayPicker
+                      mode="range"
+                      selected={dateRange}
+                      onSelect={setDateRange}
+                      numberOfMonths={1}
+                      disabled={{
+                        before: sixMonthsAgo,
+                        after: today,
+                      }}
+                      excludeDisabled
+                      className="text-white"
+                    />
+
+                    <div className="flex justify-between items-center mt-3">
+                      <button
+                        type="button"
+                        onClick={() => setDateRange(undefined)}
+                        className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition"
+                      >
+                        <X className="h-3 w-3" />
+                        Clear
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setCalendarOpen(false)}
+                        className="bg-[#4682B4] hover:bg-[#3a6f9a] text-white px-3 py-1.5 rounded-lg text-xs font-medium transition"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Search */}
+            <div>
+              <button
+                type="submit"
+                className="h-[40px] px-6 bg-[#3b82f6] hover:bg-[#3a6f9a] text-white rounded-lg text-sm font-medium transition"
+              >
+                Search
+              </button>
+            </div>
+
+          </div>
         </form>
 
       </div>
 
       {/* Production Lines Progress */}
-      <div className="flex-1 min-h-0 flex flex-col grid grid-cols-1 lg:grid-cols-2 gap-6 mx-8 my-2">
+      <div className=" flex-1 min-h-0 flex flex-col grid grid-cols-1 lg:grid-cols-2 gap-6 mx-8 my-2">
         {/* Production Lines Progress */}
-        <div className="lg:col-span-2 bg-gray-800 rounded-xl shadow-md">
+        <div className="lg:col-span-2 bg-gray-800 rounded-xl shadow-md flex flex-col min-h-0">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-white p-6">
               Production Lines Progress
@@ -650,7 +656,7 @@ const EnterprisePage = () => {
               <p className="text-gray-400">No data available for the current week.</p>
             </div>
           ) : (
-            <div className="flex w-full h-100 ">
+            <div className=" flex-1 min-h-0 w-full ">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   barSize={40}
