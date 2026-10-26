@@ -14,7 +14,7 @@ COPY . .
 RUN npm run build
 
 # --- Production ---
-FROM node:20 AS production
+FROM node:24 AS production
 
 RUN apt update && apt install -y less man-db
 RUN apt upgrade -y
