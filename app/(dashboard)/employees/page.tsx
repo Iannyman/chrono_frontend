@@ -587,7 +587,7 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
                         [scrollbar-color:#4b5563_#1f2937]">
 
           <table className="w-full text-sm">
-            <thead>
+            <thead className="sticky top-0 bg-gray-800">
               <tr className="border-b border-gray-700 text-gray-400">
                 <th className="text-left py-3 font-medium">Log ID</th>
                 <th className="text-left py-3 font-medium">Personal ID</th>
