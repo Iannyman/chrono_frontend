@@ -49,32 +49,36 @@ const Sidebar = ({ user, isAdmin }: SidebarProps) => {
 
         <nav className="mt-4 flex flex-col justify-between">
           <ul className="flex flex-col gap-3">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
+            {menuItems
+              .filter((item) =>
+                isAdmin || (item.name !== "Personnel" && item.name !== "Settings")
+              )
+              .map((item) => {
+                const Icon = item.icon;
 
-              const isActive = pathname === item.href ||
-              (item.href !== "/" &&
-                  pathname.startsWith(`${item.href}/`));
+                const isActive =
+                  pathname === item.href ||
+                  (item.href !== "/" && pathname.startsWith(`${item.href}/`));
 
-              return (
-                <li key={item.name}>
-                  <Link
-                    href={item.href}
-                    className={`flex h-14 w-full items-center rounded-xl px-4 text-sm font-medium hover:text-[#fbfdc1] ${isActive
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      className={`flex h-14 w-full items-center rounded-xl px-4 text-sm font-medium hover:text-[#fbfdc1] ${
+                        isActive
                           ? "bg-[#fbfdc1] text-gray-900 hover:text-gray-900"
                           : "text-white hover:bg-gray-700 hover:text-[#fbfdc1]"
-                      }
-                    `}>
-                
-                    <span className="flex h-5 w-5 items-center justify-center shrink-0">
-                      <Icon size={20} />
-                    </span>
+                      }`}
+                    >
+                      <span className="flex h-5 w-5 items-center justify-center shrink-0">
+                        <Icon size={20} />
+                      </span>
 
-                    <span className="ml-4 hidden md:block">{item.name}</span>
-                  </Link>
-                </li>
-              );
-            })}
+                      <span className="ml-4 hidden md:block">{item.name}</span>
+                    </Link>
+                  </li>
+                );
+              })}
           </ul>
 
           <div className="absolute bottom-5 border-t-2 border-gray-700 px-4 pt-4 w-50">

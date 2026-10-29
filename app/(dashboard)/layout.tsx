@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import Sidebar from "@/components/sidebar";
 import { USER_COOKIE } from "@/lib/auth-cookie";
+import { isAdminUser } from "@/lib/admin";
 
 export default async function DashboardLayout({
   children,
@@ -19,8 +20,7 @@ export default async function DashboardLayout({
   }
 
   // --- ADMIN CHECK ---
-  const admins = process.env.ADMINS?.toLowerCase().split(",").map(a => a.trim()) ?? [];
-  const isAdmin = user?.username ? admins.includes(user.username) : false;
+  const isAdmin = isAdminUser(user?.username);
 
   return (
     <>
