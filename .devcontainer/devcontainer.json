@@ -11,9 +11,10 @@
   ],
   "runArgs": [
     "--name=dev-${localWorkspaceFolderBasename}",
+    "--network=chrono",
     "--publish", "4200:3000",
-    "--env", "TZ=Europe/Bucharest",
-    "--env", "API_BASE_URL=http://172.23.5.77:5000"
+    "--env", "TZ=Europe/Bucharest"
+    //"--env", "API_BASE_URL=http://172.23.5.77:5000"
   ],
   "postCreateCommand": "npm config set strict-ssl false",
   "customizations": {
