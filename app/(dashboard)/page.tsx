@@ -390,40 +390,26 @@ fetchDashboardData();
             Lines Breakdown
           </h2>
 
-          <div className="flex flex-col ">
-            {projectBreakdown.map((project) => (
-              <div className="mt-4 pt-4 border-t border-gray-700" key={project.name}>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-300">
-                    {project.name}
-                  </span>
-                  {/* <span className="text-sm text-white font-medium">
-                    {project.hours}h
-                  </span> */}
-                
-                {/* <div className="w-full bg-gray-700 rounded-full h-2">
-                { <div
-                  className={`${project.color} h-2 rounded-full transition-all`}
-                  style={{
-                    width: `${(project.hours / 120) * 100}%`,
-                  }}
-                /> }
-                </div> */}
-                  <span className="text-xs ">
-                    {project.employees} employees
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6 pt-4 border-t border-gray-700">
-            {/* <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Total logged</span>
-              <span className="text-white font-semibold">384h</span>
-            </div> */}
-          </div>
+          <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-700 text-gray-400 flex justify-between">
+                  <th className="text-left py-3 font-medium">Line Name</th>
+                  <th className="text-left py-3 font-medium">Employees</th>
+                </tr>
+              </thead>
+              <tbody>
+                {projectBreakdown.map((project) => (
+                  <tr className="flex items-center justify-between border-b border-gray-700  py-3" key={project.name}>
+                    <td className="text-sm text-gray-300">
+                      {project.name}
+                    </td>
+                    <td className="text-sm text-gray-300">
+                      {project.employees}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
         </div>
       </div>
     </div>
