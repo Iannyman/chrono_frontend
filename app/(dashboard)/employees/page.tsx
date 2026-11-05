@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { use, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   Search,
   Users,
@@ -36,7 +36,12 @@ interface EmployeeSession {
 
 interface EmployeeReportDay {
   reporting_day: string;
+  person_id?: number;
+  person_last_name?: string;
+  person_first_name?: string;
   sessions: EmployeeSession[];
+  line_id?: number;
+  line_name?: string;
 }
 
 interface EmployeeApiResponse {
@@ -53,8 +58,6 @@ interface EmployeesPageProps {
 }
 
 const EmployeesPage = ({ user }: EmployeesPageProps) => {
-
-
 
   const [personalIdInput, setPersonalIdInput] = useState("");
   const [selectedLine, setSelectedLine] = useState("All Lines");
@@ -104,26 +107,85 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
   sixMonthsAgo.setHours(0, 0, 0, 0);
 
 
+  const formatApiDate = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  };
+
+  const getDefaultDateRange = () => {
+    const today = new Date();
+
+    const day = today.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+
+    const startWeek = new Date(today);
+    startWeek.setDate(today.getDate() + diff);
+
+    const from = new Date(startWeek);
+    from.setDate(startWeek.getDate() - 7);
+
+    return {
+      from,
+      to: today,
+    };
+  };
 
   const employeeRows = useMemo(() => {
-    const employeeRows = employeeRecords.flatMap((day) =>
+    const detailedRows = employeeRecords.flatMap((day) =>
       (day.sessions ?? []).map((session) => ({
         day,
-        session,
+        session: {
+          ...session,
+          person_id: session.person_id ?? day.person_id,
+          person_first_name:
+            session.person_first_name ?? day.person_first_name,
+          person_last_name:
+            session.person_last_name ?? day.person_last_name,
+          line_id: session.line_id ?? day.line_id,
+          line_name: session.line_name ?? day.line_name,
+        },
       }))
     );
-    const liveRows = liveSession.flatMap((session) => ({
-      day: {
-        reporting_day: session.login_timestamp.split("T")[0],
-        sessions: [],
-      },
-      session: {
-        ...session,
-        isLive: true,
-      },
-    })); //isLive should be inside session, not outside
-    return [...liveRows, ...employeeRows];
-  }, [employeeRecords, liveSession]);
+
+    const today = formatApiDate(new Date());
+    const defaultRange = getDefaultDateRange();
+    const from = formatApiDate(
+      appliedDateRange?.from ?? defaultRange.from
+    );
+
+    const to = formatApiDate(
+      appliedDateRange?.to ??
+      appliedDateRange?.from ??
+      defaultRange.to
+    );
+
+    const includesToday = from <= today && today <= to;
+
+    if (!includesToday) {
+      return detailedRows;
+    }
+
+    const detailedLogIds = new Set(
+      detailedRows.map(({ session }) => session.log_id)
+    );
+
+    const liveRows = liveSession
+      .filter((session) => !detailedLogIds.has(session.log_id))
+      .map((session) => ({
+        day: {
+          reporting_day: session.login_timestamp.split("T")[0],
+          sessions: [],
+        },
+        session: {
+          ...session,
+          isLive: true,
+        },
+      })); //isLive should be inside session, not outside
+    return [...liveRows, ...detailedRows];
+  }, [employeeRecords, liveSession, appliedDateRange]);
 
 
   const productionLines = useMemo(() => {
@@ -135,7 +197,7 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
   }, [employeeRows]);
 
 
-  const handleSearch = (event?: FormEvent<HTMLFormElement>) => {
+  const handleSearch = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
 
     setAppliedPersonalId(personalIdInput.trim());
@@ -144,6 +206,28 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
 
     setLineDropdownOpen(false);
     setCalendarOpen(false);
+
+    // Fetch employees based on the applied filters
+    const defaultDateRange = getDefaultDateRange();
+    const fromDate = dateRange?.from || defaultDateRange.from;
+    const toDate = dateRange?.to || defaultDateRange.to;
+
+    // Obținem line_id real din sesiunile existente
+    const selectedSession = employeeRows.find(
+      ({ session }) => session.line_name === selectedLine
+    );
+
+    const lineId =
+      selectedLine === "All Lines"
+        ? undefined
+        : selectedSession?.session.line_id;
+
+    await fetchEmployees(
+      formatApiDate(fromDate),
+      formatApiDate(toDate),
+      personalIdInput.trim() || undefined,
+      lineId
+    );
   };
 
 
@@ -155,6 +239,7 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
     const matchesLine =
       appliedLine === "All Lines" || session.line_name === appliedLine;
 
+    //pastrez verif intervalului pt sesiunile live
     const employeeDate = parseReportingDay(day.reporting_day);
 
     const matchesDate =
@@ -164,6 +249,15 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
           ? (!appliedDateRange?.from || employeeDate >= appliedDateRange.from) &&
           (!appliedDateRange?.to || employeeDate <= appliedDateRange.to)
           : false;
+
+    console.log("FILTER CHECK:", {
+      person_id: session.person_id,
+      line_name: session.line_name,
+      reporting_day: day.reporting_day,
+      matchesPersonalId,
+      matchesLine,
+      matchesDate,
+    });
 
     return matchesPersonalId && matchesLine && matchesDate;
   });
@@ -205,76 +299,170 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
 
 
 
-  useEffect(() => {
-    async function fetchEmployees() {
-      try {
-        setLoading(true);
-        setError("");
+  // useEffect(() => {
+  //   async function fetchEmployees() {
+  //     try {
+  //       setLoading(true);
+  //       setError("");
 
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(today.getDate() - 60);
+  //       const today = new Date();
+  //       const yesterday = new Date(today);
+  //       yesterday.setDate(today.getDate() - 60);
 
-        const formatDate = (date: Date) => {
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, "0");
-          const day = String(date.getDate()).padStart(2, "0");
+  //       const formatDate = (date: Date) => {
+  //         const year = date.getFullYear();
+  //         const month = String(date.getMonth() + 1).padStart(2, "0");
+  //         const day = String(date.getDate()).padStart(2, "0");
 
-          return `${year}-${month}-${day}`;
-        };
+  //         return `${year}-${month}-${day}`;
+  //       };
 
-        const [apiResponse, liveApiResponse] = await Promise.all([
-          fetch(API_URL, {
-            method: 'POST',
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              from: formatDate(yesterday),
-              to: formatDate(today),
-            }),
+  //       const [apiResponse, liveApiResponse] = await Promise.all([
+  //         fetch(API_URL, {
+  //           method: 'POST',
+  //           headers: { "Content-Type": "application/json" },
+  //           body: JSON.stringify({
+  //             from: formatDate(yesterday),
+  //             to: formatDate(today),
+  //           }),
+  //         }),
+  //         fetch(LIVE_API_URL, {
+  //           method: 'POST',
+  //           headers: { "Content-Type": "application/json" },
+  //           body: JSON.stringify({}),
+  //         }),
+  //       ]);
+
+  //       if (apiResponse.status === 401 || liveApiResponse.status === 401) {
+  //         // Session cookie is gone/dead — full navigation so proxy.ts reroutes
+  //         // to /login instead of polling a ghost session.
+  //         window.location.replace("/login");
+  //         return;
+  //       }
+
+  //       const result: EmployeeApiResponse = await apiResponse.json();
+
+  //       const liveResult: EmployeeApiResponse = await liveApiResponse.json();
+
+
+  //       if (result.success === 1 && Array.isArray(result.data)) {
+  //         setEmployeeRecords(result.data);
+  //       } else {
+  //         setEmployeeRecords([]);
+  //         setError("Invalid employee data received.");
+  //       }
+
+  //       if (liveResult.success === 1 && Array.isArray(liveResult.data)) {
+  //         setLiveSession(liveResult.data.flatMap((day) => day.sessions));
+  //       } else {
+  //         setLiveSession([]);
+  //         setError("Invalid employee data received.");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching employee data:", error);
+  //       setError("Error fetching employee data.");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
+
+  //   fetchEmployees();
+
+  // }, []);
+
+
+
+
+
+
+
+  async function fetchEmployees(from: string, to: string, person_id?: string, line_id?: number) {
+    try {
+      setLoading(true);
+      setError("");
+
+      // const response = await fetch(API_URL, {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({
+      //     from,
+      //     to,
+      //   }),
+      // });
+
+      console.log("FETCH FILTERS:", {
+        from,
+        to,
+        person_id,
+        line_id,
+      });
+
+      const [detailedApiResponse, liveApiResponse] = await Promise.all([
+        fetch(API_URL, {
+          method: 'POST',
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            from,
+            to,
+            ...(person_id ? { person_id } : {}),
+            ...(line_id !== undefined ? { line_id } : {}),
           }),
-          fetch(LIVE_API_URL, {
-            method: 'POST',
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({}),
-          }),
-        ]);
+        }),
+        fetch(LIVE_API_URL, {
+          method: 'POST',
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        }),
+      ]);
 
-        if (apiResponse.status === 401 || liveApiResponse.status === 401) {
-          // Session cookie is gone/dead — full navigation so proxy.ts reroutes
-          // to /login instead of polling a ghost session.
-          window.location.replace("/login");
-          return;
-        }
-
-        const result: EmployeeApiResponse = await apiResponse.json();
-
-        const liveResult: EmployeeApiResponse = await liveApiResponse.json();
-
-
-        if (result.success === 1 && Array.isArray(result.data)) {
-          setEmployeeRecords(result.data);
-        } else {
-          setEmployeeRecords([]);
-          setError("Invalid employee data received.");
-        }
-
-        if (liveResult.success === 1 && Array.isArray(liveResult.data)) {
-          setLiveSession(liveResult.data.flatMap((day) => day.sessions));
-        } else {
-          setLiveSession([]);
-          setError("Invalid employee data received.");
-        }
-      } catch (error) {
-        console.error("Error fetching employee data:", error);
-        setError("Error fetching employee data.");
-      } finally {
-        setLoading(false);
+      if (detailedApiResponse.status === 401 || liveApiResponse.status === 401) {
+        // Session cookie is gone/dead — full navigation so proxy.ts reroutes
+        // to /login instead of polling a ghost session.
+        window.location.replace("/login");
+        return;
       }
+
+      const result: EmployeeApiResponse = await detailedApiResponse.json();
+
+      console.log("API RESPONSE:", result);
+      console.log("EMPLOYEE RECORDS:", result.data);
+
+      const liveResult: EmployeeApiResponse = await liveApiResponse.json();
+
+      if (result.success === 1 && Array.isArray(result.data)) {
+        setEmployeeRecords(result.data);
+      } else {
+        setEmployeeRecords([]);
+        setError("Invalid employee data received.");
+      }
+
+      if (liveResult.success === 1 && Array.isArray(liveResult.data)) {
+        setLiveSession(liveResult.data.flatMap((day) => day.sessions));
+      } else {
+        setLiveSession([]);
+        setError("Invalid employee data received.");
+      }
+    } catch (error) {
+      console.error(error);
+      setError("Error fetching employee data.");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    fetchEmployees();
 
+  useEffect(() => {
+    const { from, to } = getDefaultDateRange();
+
+    fetchEmployees(
+      formatApiDate(from),
+      formatApiDate(to)
+    );
   }, []);
+
+
 
   async function editSession(updatedSession: EmployeeSession) {
     try {
@@ -348,7 +536,7 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
         setTimeout(() => {
           window.location.reload();
         }, 2000);
-        
+
       } else toast.error("Failed to delete session.", { position: "top-right" });
 
 
