@@ -55,6 +55,16 @@ export type EmployeeSession = {
   isLive?: boolean;
 }
 
+interface EmployeeReportDay {
+  reporting_day: string;
+  person_id?: number;
+  person_last_name?: string;
+  person_first_name?: string;
+  sessions: EmployeeSession[];
+  line_id?: number;
+  line_name?: string;
+}
+
 const projects: Project[] = [
   { id: 1, name: "Assembly Line A", line: "Production", lead: "Pedro Garcia", status: "On Track", totalEmployees: 15, totalHours: 4200, budgetedHours: 5000, weekHours: 120 },
   { id: 2, name: "Assembly Line B", line: "Production", lead: "Carlos Mendez", status: "On Track", totalEmployees: 12, totalHours: 3800, budgetedHours: 4500, weekHours: 96 },
@@ -70,88 +80,45 @@ const projects: Project[] = [
 // };
 
 
-const productionLines = [
-  { line: "Assembly Line A", minutes: 8000 },
-  { line: "Assembly Line B", minutes: 2400 },
-  { line: "Assembly Line C", minutes: 1800 },
-  { line: "Assembly Line D", minutes: 1100 },
-  { line: "Assembly Line E", minutes: 2900 },
-  { line: "Assembly Line A", minutes: 8000 },
-  { line: "Assembly Line B", minutes: 2400 },
-  { line: "Assembly Line C", minutes: 1800 },
-  { line: "Assembly Line D", minutes: 1100 },
-  { line: "Assembly Line E", minutes: 2900 },
-  { line: "Assembly Line A", minutes: 8000 },
-  { line: "Assembly Line B", minutes: 2400 },
-  { line: "Assembly Line C", minutes: 1800 },
-  { line: "Assembly Line D", minutes: 1100 },
-  { line: "Assembly Line E", minutes: 2900 },
-];
+// const hardData = [
+//   { line: "304 DWT", hours: 32.5 },
+//   { line: "308", hours: 48 },
+//   { line: "309", hours: 21.7 },
+//   { line: "310", hours: 15.3 },
+//   { line: "304 DWT", hours: 32.5 },
+//   { line: "308", hours: 48 },
+//   { line: "309", hours: 21.7 },
+//   { line: "310", hours: 15.3 }, { line: "304 DWT", hours: 32.5 },
+//   { line: "308", hours: 48 },
+//   { line: "309", hours: 21.7 },
+//   { line: "310", hours: 15.3 },
+//   { line: "307R + 307R Magnet", hours: 32.5 },
+//   { line: "308", hours: 48 },
+//   { line: "309", hours: 21.7 },
+//   { line: "310", hours: 15.3 },
+//   { line: "304 DWT", hours: 32.5 },
+//   { line: "308", hours: 48 },
+//   { line: "309", hours: 21.7 },
+//   { line: "310", hours: 15.3 },
+//   { line: "304 DWT", hours: 32.5 },
+//   { line: "308", hours: 48 },
+//   { line: "309", hours: 21.7 },
+//   { line: "310", hours: 15.3 },
+//   { line: "304 DWT", hours: 32.5 },
+//   { line: "308", hours: 48 },
+//   { line: "309", hours: 21.7 },
+//   { line: "310", hours: 15.3 },
+//   { line: "304 DWT", hours: 32.5 },
+//   { line: "308", hours: 48 },
+//   { line: "309", hours: 21.7 },
+//   { line: "310", hours: 15.3 },
+//   { line: "304 DWT", hours: 32.5 },
+// ];
 
-const hardData = [
-  { line: "304 DWT", hours: 32.5 },
-  { line: "308", hours: 48 },
-  { line: "309", hours: 21.7 },
-  { line: "310", hours: 15.3 },
-  { line: "304 DWT", hours: 32.5 },
-  { line: "308", hours: 48 },
-  { line: "309", hours: 21.7 },
-  { line: "310", hours: 15.3 }, { line: "304 DWT", hours: 32.5 },
-  { line: "308", hours: 48 },
-  { line: "309", hours: 21.7 },
-  { line: "310", hours: 15.3 },
-  { line: "307R + 307R Magnet", hours: 32.5 },
-  { line: "308", hours: 48 },
-  { line: "309", hours: 21.7 },
-  { line: "310", hours: 15.3 },
-  { line: "304 DWT", hours: 32.5 },
-  { line: "308", hours: 48 },
-  { line: "309", hours: 21.7 },
-  { line: "310", hours: 15.3 },
-  { line: "304 DWT", hours: 32.5 },
-  { line: "308", hours: 48 },
-  { line: "309", hours: 21.7 },
-  { line: "310", hours: 15.3 },
-  { line: "304 DWT", hours: 32.5 },
-  { line: "308", hours: 48 },
-  { line: "309", hours: 21.7 },
-  { line: "310", hours: 15.3 },
-  { line: "304 DWT", hours: 32.5 },
-  { line: "308", hours: 48 },
-  { line: "309", hours: 21.7 },
-  { line: "310", hours: 15.3 },
-  { line: "304 DWT", hours: 32.5 },
-];
 
-// const CustomXAxisTick = ({ x, y, payload }: any) => {
-//   const words = payload.value.split(" ");
-
-//   return (
-//     <g transform={`translate(${x},${y})`}>
-//       <text
-//         x={0}
-//         y={0}
-//         dy={16}
-//         textAnchor="middle"
-//         fill="#9ca3af"
-//         fontSize={12}
-//       >
-//         {words.map((word: string, index: number) => (
-//           <tspan
-//             key={index}
-//             x="0"
-//             dy={index === 0 ? 0 : 14}
-//           >
-//             {word}
-//           </tspan>
-//         ))}
-//       </text>
-//     </g>
-//   );
-// };
 
 const EnterprisePage = () => {
-  const [sessions, setSessions] = useState<EmployeeSession[]>([]);
+  // const [sessions, setSessions] = useState<EmployeeSession[]>([]);
   const [lineDropdownOpen, setLineDropdownOpen] = useState(false);
   const [selectedLine, setSelectedLine] = useState("All Lines");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -162,11 +129,13 @@ const EnterprisePage = () => {
   const [employeeRecords, setEmployeeRecords] = useState<EmployeeReportDay[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const productionLines = Array.from(
-    new Set(sessions.map((session) => session.line_name))
-  );
+  const [productionLines, setProductionLines] = useState<
+    { line_id: number; line_name: string }[]
+  >([]);
 
-  const handleSearch = (event?: FormEvent<HTMLFormElement>) => {
+  const handleSearch = async (
+    event?: FormEvent<HTMLFormElement>
+  ) => {
     event?.preventDefault();
 
     setAppliedLine(selectedLine);
@@ -174,28 +143,52 @@ const EnterprisePage = () => {
 
     setLineDropdownOpen(false);
     setCalendarOpen(false);
+
+    const defaultRange = getDefaultDateRange();
+
+    const fromDate = dateRange?.from ?? defaultRange.from;
+    const toDate =
+      dateRange?.to ?? dateRange?.from ?? defaultRange.to;
+
+    const selectedProductionLine = productionLines.find(
+      (line) => line.line_name === selectedLine
+    );
+
+    if (
+      selectedLine !== "All Lines" &&
+      !selectedProductionLine
+    ) {
+      console.error("Production line ID not found");
+      return;
+    }
+
+    await fetchSessions(
+      fromDate,
+      toDate,
+      selectedProductionLine?.line_id
+    );
   };
 
 
 
   const employeeRows = useMemo(() => {
-    const employeeRows = employeeRecords.flatMap((day) =>
+    return employeeRecords.flatMap((day) =>
       (day.sessions ?? []).map((session) => ({
         day,
-        session,
+        session: {
+          ...session,
+
+          person_id: session.person_id ?? day.person_id,
+          person_first_name:
+            session.person_first_name ?? day.person_first_name,
+          person_last_name:
+            session.person_last_name ?? day.person_last_name,
+
+          line_id: session.line_id ?? day.line_id,
+          line_name: session.line_name ?? day.line_name,
+        },
       }))
     );
-    // const liveRows = liveSession.flatMap((session) => ({
-    //   day: {
-    //     reporting_day: session.login_timestamp.split("T")[0],
-    //     sessions: [],
-    //   },
-    //   session: {
-    //     ...session,
-    //     isLive: true,
-    //   },
-    // }));
-    return [...employeeRows];
   }, [employeeRecords]);
 
 
@@ -233,8 +226,8 @@ const EnterprisePage = () => {
     !!appliedDateRange?.from ||
     !!appliedDateRange?.to;
 
-  const hasLineFilter =
-    appliedLine !== "All Lines";
+  // const hasLineFilter =
+  //   appliedLine !== "All Lines";
 
   const now = new Date();
   const startWeek = new Date(now);
@@ -248,19 +241,14 @@ const EnterprisePage = () => {
   endWeek.setDate(startWeek.getDate() + 6);
   endWeek.setHours(23, 59, 59, 999);
 
-  const chartRows = hasDateFilter || hasLineFilter
-    ? filteredLines
-    : employeeRows.filter(({ day }) => {
-      const rowDate = parseReportingDay(day.reporting_day);
-      return (
-        rowDate &&
-        rowDate >= startWeek &&
-        rowDate <= endWeek
-      );
-    });
+  const chartRows = filteredLines;
 
   const totalLines = new Set(
-    filteredLines.map(({ session }) => session.line_name)
+    chartRows.map(({ session }) => session.line_name).filter(Boolean)
+  ).size;
+
+  const totalEmployees = new Set(
+    chartRows.map(({ session }) => session.person_id).filter((id) => id != null)
   ).size;
 
 
@@ -282,27 +270,26 @@ const EnterprisePage = () => {
   sixMonthsAgo.setHours(0, 0, 0, 0);
 
 
-
-
   let chartData;
   if (hasDateFilter) {
     const hoursByDay = new Map<string, number>();
-    filteredLines.forEach(({ day, session }) => {
+
+    chartRows.forEach(({ day, session }) => {
       const date = day.reporting_day;
-      if (!date) return;
-
       const minutes = Number(session.session_minutes || 0);
-      const currentMinutes = hoursByDay.get(date) || 0;
 
-      hoursByDay.set(date, currentMinutes + minutes);
+      hoursByDay.set(
+        date,
+        (hoursByDay.get(date) || 0) + minutes
+      );
     });
 
-    chartData = Array.from(hoursByDay.entries()).map(
-      ([date, minutes]) => ({
+    chartData = Array.from(hoursByDay.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, minutes]) => ({
         line: date,
         hours: Math.round((minutes / 60) * 10) / 10,
-      })
-    );
+      }));
   } else {
     const hoursByLine = new Map<string, number>();
 
@@ -361,10 +348,6 @@ const EnterprisePage = () => {
 
 
 
-  type EmployeeReportDay = {
-    reporting_day: string;
-    sessions: EmployeeSession[];
-  };
 
   const stats = [
     {
@@ -381,16 +364,11 @@ const EnterprisePage = () => {
     },
     {
       title: "Assigned Employees",
-      value: projects.reduce((sum, p) => sum + p.totalEmployees, 0),
+      value: totalEmployees,
       icon: Users,
       iconColor: "text-emerald-400",
     },
-    // {
-    //   title: "This Week",
-    //   value: totalWeekHours,
-    //   icon: Timer,
-    //   iconColor: "text-yellow-400",
-    // },
+
   ];
 
 
@@ -413,42 +391,138 @@ const EnterprisePage = () => {
     };
   }, []);
 
+  const formatApiDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
 
+    return `${year}-${month}-${day}`;
+  };
 
-  useEffect(() => {
-    const fetchSessions = async () => {
+  const getDefaultDateRange = () => {
+    const today = new Date();
+
+    const day = today.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+
+    const startWeek = new Date(today);
+    startWeek.setDate(today.getDate() + diff);
+    startWeek.setHours(0, 0, 0, 0);
+
+    return {
+      from: startWeek,
+      to: today,
+    };
+  };
+
+  async function fetchSessions(from: Date, to: Date, line_id?: number) {
+    setLoading(true);
+    try {
       const response = await fetch("/api/sessions/detailed", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({
+          from: formatApiDate(from),
+          to: formatApiDate(to),
+          ...(line_id !== undefined ? { line_id } : {}),
+        }),
       });
 
       if (response.status === 401) {
-        // Session cookie is gone/dead — full navigation so proxy.ts reroutes
-        // to /login instead of rendering an empty page.
         window.location.replace("/login");
         return;
       }
 
+      if (!response.ok) {
+        throw new Error("Failed to fetch sessions");
+      }
+
       const data = await response.json();
-      setEmployeeRecords(data.data);
 
-      // console.log("API DATA:", data);
-      // console.log("DATA.DATA:", data.data);
-      // console.log("Is array:", Array.isArray(data));
+      if (data.success !== 1 || !Array.isArray(data.data)) {
+        throw new Error("Invalid sessions data");
+      }
 
-      const allSessions = data.data.flatMap(
-        (day: EmployeeReportDay) => day.sessions ?? []
+      const records: EmployeeReportDay[] = data.data;
+
+      setEmployeeRecords(records);
+
+      // Păstrăm lista liniilor cunoscute și ID-urile reale
+      const lines = records.flatMap((day) =>
+        (day.sessions ?? []).map((session) => ({
+          line_id: session.line_id ?? day.line_id,
+          line_name: session.line_name ?? day.line_name,
+        }))
       );
 
-      setSessions(allSessions);
+      setProductionLines((previous) => {
+        const lineMap = new Map(
+          previous.map((line) => [line.line_id, line.line_name])
+        );
 
-    };
+        lines.forEach((line) => {
+          if (
+            line.line_id !== undefined &&
+            line.line_name
+          ) {
+            lineMap.set(line.line_id, line.line_name);
+          }
+        });
 
-    fetchSessions();
+        return Array.from(lineMap, ([line_id, line_name]) => ({
+          line_id,
+          line_name,
+        }));
+      });
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    const { from, to } = getDefaultDateRange();
+
+    fetchSessions(from, to);
   }, []);
+
+  // useEffect(() => {
+  //   const fetchSessions = async () => {
+  //     const response = await fetch("/api/sessions/detailed", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({}),
+  //     });
+
+  //     if (response.status === 401) {
+  //       // Session cookie is gone/dead — full navigation so proxy.ts reroutes
+  //       // to /login instead of rendering an empty page.
+  //       window.location.replace("/login");
+  //       return;
+  //     }
+
+  //     const data = await response.json();
+  //     setEmployeeRecords(data.data);
+
+  //     // console.log("API DATA:", data);
+  //     // console.log("DATA.DATA:", data.data);
+  //     // console.log("Is array:", Array.isArray(data));
+
+  //     const allSessions = data.data.flatMap(
+  //       (day: EmployeeReportDay) => day.sessions ?? []
+  //     );
+
+  //     setSessions(allSessions);
+
+  //   };
+
+  //   fetchSessions();
+  // }, []);
 
 
 
@@ -530,20 +604,20 @@ const EnterprisePage = () => {
 
                 {lineDropdownOpen && (
                   <div className="absolute z-10 mt-1 w-full bg-gray-700 rounded-lg shadow-lg border border-gray-600 py-1">
-                    {["All Lines", ...productionLines.filter(line => line !== "All Lines")].map((line) => (
+                    {[{ line_id: -1, line_name: "All Lines" }, ...productionLines].map((line) => (
                       <button
                         type="button"
-                        key={line}
+                        key={line.line_id}
                         onClick={() => {
-                          setSelectedLine(line);
+                          setSelectedLine(line.line_name);
                           setLineDropdownOpen(false);
                         }}
-                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-600 transition ${selectedLine === line
-                            ? "text-[#4682B4] font-medium"
-                            : "text-gray-300"
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-600 transition ${selectedLine === line.line_name
+                          ? "text-[#4682B4] font-medium"
+                          : "text-gray-300"
                           }`}
                       >
-                        {line}
+                        {line.line_name}
                       </button>
                     ))}
                   </div>
@@ -641,7 +715,7 @@ const EnterprisePage = () => {
       {/* Production Lines Progress */}
       <div className=" flex-1 min-h-0 flex flex-col grid grid-cols-1 lg:grid-cols-2 gap-6 mx-8 my-2">
         {/* Production Lines Progress */}
-        <div className="lg:col-span-2 bg-gray-800 rounded-xl shadow-md flex flex-col min-h-0">
+        <div className="lg:col-span-2 bg-gray-800 rounded-xl shadow-md flex flex-col min-h-[390px]">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-white p-6">
               Production Lines Progress
@@ -651,15 +725,20 @@ const EnterprisePage = () => {
             </span> */}
           </div>
 
-          {chartData.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <p className="text-gray-400">Loading production lines...</p>
+            </div>
+          ) : chartData.length === 0 ? (
             <div className="flex items-center justify-center h-64">
               <p className="text-gray-400">No data available for the current week.</p>
             </div>
           ) : (
-            <div className=" flex-1 min-h-0 w-full ">
+            <div className="flex-1 min-h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   barSize={40}
+                  margin={{ top: 45, right: 20, left: 10, bottom: 10 }}
                   data={chartData}
                   layout="horizontal"
                 // margin={{
@@ -672,6 +751,8 @@ const EnterprisePage = () => {
                 >
                   <YAxis
                     type="number"
+                    label={{ value: "Hours", angle: -90, position: "insideLeft", fill: "#a9a9a9" }}
+                    domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.2)]} //spatiu deaspura de cel mai mare bar
                   // label={{ position: "bottom", offset: -5 }}
                   />
 
