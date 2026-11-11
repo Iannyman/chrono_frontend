@@ -1,5 +1,5 @@
 "use client";
-import { House, IdCard, List, Settings, LogOut, Users } from "lucide-react";
+import { House, IdCard, List, ScanLine, Settings, LogOut, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ const menuItems = [
   { name: "Home", icon: House, variant: "ghost", href: "/" },
   { name: "Employees", icon: IdCard, variant: "ghost", href: "/employees" },
   { name: "Reporting", icon: List, variant: "ghost", href: "/enterprise" },
+  { name: "Readers", icon: ScanLine, variant: "ghost", href: "/readers" },
   { name: "Personnel", icon: Users, variant: "ghost", href: "/personnel" },
   { name: "Settings", icon: Settings, variant: "ghost", href: "/settings" },
 ] as const;
