@@ -11,6 +11,7 @@ export type EmployeeSession = {
     logout_timestamp: string | null;
     shift_name: string;
     session_minutes: number;
+    session_status: number;
     isLive?: boolean;
 }
 
