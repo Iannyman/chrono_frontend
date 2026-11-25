@@ -398,12 +398,12 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
       //   }),
       // });
 
-      console.log("FETCH FILTERS:", {
-        from,
-        to,
-        person_id,
-        line_id,
-      });
+      // console.log("FETCH FILTERS:", {
+      //   from,
+      //   to,
+      //   person_id,
+      //   line_id,
+      // });
 
       const [detailedApiResponse, liveApiResponse] = await Promise.all([
         fetch(API_URL, {
@@ -432,11 +432,10 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
 
       const result: EmployeeApiResponse = await detailedApiResponse.json();
 
-      console.log("API RESPONSE:", result);
-      console.log("EMPLOYEE RECORDS:", result.data);
+      // console.log("API RESPONSE:", result);
+      // console.log("EMPLOYEE RECORDS:", result.data);
 
       const liveResult: EmployeeApiResponse = await liveApiResponse.json();
-
 
 
       if (result.success === 1 && Array.isArray(result.data)) {
@@ -449,7 +448,7 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
       if (liveResult.success === 1 && Array.isArray(liveResult.data)) {
         const liveSessions = liveResult.data.flatMap((day) => day.sessions);
 
-        setLiveSession(liveSessions);
+        // setLiveSession(liveSessions);
 
         const sessionsByPerson = new Map<string, number>();
 
@@ -465,10 +464,26 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
         const doubleClockedInIds = Array.from(sessionsByPerson.entries())
           .filter(([, count]) => count > 1)
           .map(([personId]) => personId);
+          
 
         setDoubleClockedInIds(doubleClockedInIds);
 
-        console.log("DOUBLE CLOCKED IN IDS:", doubleClockedInIds);
+        const sortedLive = [...liveSessions].sort((a,b) => {
+          const aDouble = doubleClockedInIds.includes(String(a.person_id));
+            const bDouble = doubleClockedInIds.includes(String(b.person_id));
+
+            if (aDouble !== bDouble){
+              return aDouble ? -1 : 1;
+            }
+
+            return (
+              new Date(b.login_timestamp).getTime() - new Date(a.login_timestamp).getTime()
+            );
+        })
+
+        setLiveSession(sortedLive)
+
+        // console.log("DOUBLE CLOCKED IN IDS:", doubleClockedInIds);
 
       } else {
         setLiveSession([]);
