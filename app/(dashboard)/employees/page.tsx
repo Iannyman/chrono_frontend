@@ -11,11 +11,13 @@ import {
   CalendarDays,
   X,
   Pencil,
+  AlertTriangle,
 } from "lucide-react";
 import { DayPicker, DateRange } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import Popup from "@/components/popup";
 import { toast } from "sonner";
+// import { useDoubleClockedIn } from "@/hooks/useDoubleClockedIn";
 
 
 
@@ -31,6 +33,7 @@ interface EmployeeSession {
   logout_timestamp: string | null;
   shift_name: string;
   session_minutes: number;
+  session_status: number;
   isLive?: boolean; // Optional property to indicate if the session is live
 }
 
@@ -76,6 +79,8 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
   const [error, setError] = useState("");
 
   const [liveSession, setLiveSession] = useState<EmployeeSession[]>([]);
+
+  const [doubleClockedInIds, setDoubleClockedInIds] = useState<string[]>([]);
 
   const formatDate = (date?: Date) => {
     if (!date) return "";
@@ -376,6 +381,7 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
 
 
 
+
   async function fetchEmployees(from: string, to: string, person_id?: string, line_id?: number) {
     try {
       setLoading(true);
@@ -431,6 +437,8 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
 
       const liveResult: EmployeeApiResponse = await liveApiResponse.json();
 
+
+
       if (result.success === 1 && Array.isArray(result.data)) {
         setEmployeeRecords(result.data);
       } else {
@@ -439,9 +447,32 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
       }
 
       if (liveResult.success === 1 && Array.isArray(liveResult.data)) {
-        setLiveSession(liveResult.data.flatMap((day) => day.sessions));
+        const liveSessions = liveResult.data.flatMap((day) => day.sessions);
+
+        setLiveSession(liveSessions);
+
+        const sessionsByPerson = new Map<string, number>();
+
+        liveSessions.forEach((session) => {
+          const personId = String(session.person_id);
+
+          sessionsByPerson.set(
+            personId,
+            (sessionsByPerson.get(personId) ?? 0) + 1
+          );
+        });
+
+        const doubleClockedInIds = Array.from(sessionsByPerson.entries())
+          .filter(([, count]) => count > 1)
+          .map(([personId]) => personId);
+
+        setDoubleClockedInIds(doubleClockedInIds);
+
+        console.log("DOUBLE CLOCKED IN IDS:", doubleClockedInIds);
+
       } else {
         setLiveSession([]);
+        setDoubleClockedInIds([]);
         setError("Invalid employee data received.");
       }
     } catch (error) {
@@ -450,6 +481,8 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
     } finally {
       setLoading(false);
     }
+
+
   };
 
 
@@ -556,7 +589,6 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
     setPopupOpen(true);
 
   }
-
 
   // Close calendar when clicking outside
   useEffect(() => {
@@ -787,7 +819,7 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
                 <th className="text-left py-3 font-medium">Working Hours</th>
                 <th className="text-left py-3 font-medium">Working Place</th>
                 <th className="text-left py-3 font-medium">Status</th>
-                <th className="text-left py-3 font-medium">Edit</th>
+                <th className="text-center py-3 font-medium">Actions</th>
               </tr>
             </thead>
 
@@ -878,15 +910,45 @@ const EmployeesPage = ({ user }: EmployeesPageProps) => {
                     </td>
 
 
-                    <td className="py-3 text-center">
-                      <div className="flex items-center hover:bg-gray-900/30 w-5 rounded-lg px-1 py-1">
-                        <button
-                          id="edit-button"
-                          onClick={() => { openEdit(session) }}
-                        // className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition"
-                        >
-                          <Pencil className="h-3 w-3 text-gray-400" />
-                        </button>
+                    <td className="py-3 text-center ">
+                      <div className="flex items-center justify-center  py-1  gap-4 ">
+                        {(doubleClockedInIds.includes(String(session.person_id)) ||
+                          session.session_status === 3 ||
+                          session.session_status === 4) && (
+
+                            <div className="relative group flex items-center justify-center ">
+
+                              <AlertTriangle className="h-3 w-3 text-red-400" />
+
+                              <div className="absolute bottom-full -translate-x-1/2 mb-2
+                                whitespace-nowrap bg-gray-900 text-white text-xs px-3 py-2
+                                rounded-lg shadow-lg opacity-0 group-hover:opacity-100
+                                transition-opacity pointer-events-none z-50 ">
+
+                                {doubleClockedInIds.includes(String(session.person_id)) && (
+                                  <div>Double clocked in</div>
+                                )}
+
+                                {session.session_status === 3 && (
+                                  <div>Session status 3 warning</div>
+                                )}
+
+                                {session.session_status === 4 && (
+                                  <div>Session status 4 warning</div>
+                                )}
+
+                              </div>
+
+                              <button className="flex items-center justify-center hover:bg-gray-900/30 w-6 h-6 rounded-lg"
+                                id="edit-button"
+                                onClick={() => { openEdit(session) }}
+                              // className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition"
+                              >
+                                <Pencil className="h-3 w-3 text-gray-400" />
+                              </button>
+                            </div>
+                          )
+                        }
                       </div>
                     </td>
                   </tr>
